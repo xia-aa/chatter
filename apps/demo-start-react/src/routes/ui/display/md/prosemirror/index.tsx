@@ -9,6 +9,7 @@ import {
 	TextEditor,
 	type TextEditorRef,
 } from '#/components/uix/prosemirror/editor.tsx';
+import { jsonToMd } from '#/components/uix/prosemirror/transformer/md.tsx';
 import { useFileUpload } from '#/lib/upload/useFileUpload.ts';
 
 export const Route = createFileRoute('/ui/display/md/prosemirror/')({
@@ -119,6 +120,12 @@ const MsgInput = () => {
 						)}
 					/>
 				</div>
+				<form.Subscribe
+					selector={(s) => ({ content: s.values.content })}
+					children={({ content }) => (
+						<textarea className="p-4 h-64" value={jsonToMd(content)} />
+					)}
+				/>
 				<form.SubmitButton label="Send" icon={<SendIcon />} />
 			</form.Form>
 		</form.AppForm>

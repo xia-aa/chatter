@@ -43,6 +43,7 @@
     "@orpc/server": "^latest",
     "@orpc/tanstack-query": "latest",
     "@orpc/zod": "^latest",
+    "@prosemirror-adapter/react": "^0.5.3",
     "@prosemirror-processor/markdown": "^0.0.1-alpha.4",
     "@prosemirror-processor/unist": "^0.0.1-alpha.7",
     "@sentry/tanstackstart-react": "^10.49.0",

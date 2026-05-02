@@ -24,12 +24,8 @@ import {
 	codeBlockEnter,
 	createCodeBlockBackspace,
 } from '#/components/uix/prosemirror/keymap.ts';
-import {
-	buildNullDocument,
-	documentToMd,
-	jsonToDocument,
-	mdToDocument,
-} from '#/components/uix/prosemirror/utils.tsx';
+import { jsonToDoc } from '#/components/uix/prosemirror/transformer/json.ts';
+import { docToMd } from '#/components/uix/prosemirror/transformer/md.tsx';
 import { exampleSetup } from './config';
 
 type EditorProps = {
@@ -110,7 +106,7 @@ const PureEditor = forwardRef<TextEditorRef, EditorProps>(
 			const doc = editorRef.current.state.doc;
 			return {
 				json: doc.toJSON(),
-				md: documentToMd(doc),
+				md: docToMd(doc),
 			};
 		};
 
@@ -182,7 +178,7 @@ const PureEditor = forwardRef<TextEditorRef, EditorProps>(
 		useEffect(() => {
 			if (containerRef.current && !editorRef.current) {
 				const state = EditorState.create({
-					doc: jsonToDocument(initialValue),
+					doc: jsonToDoc(initialValue),
 					plugins: [
 						keymap({
 							Enter: codeBlockEnter,
@@ -226,7 +222,7 @@ const PureEditor = forwardRef<TextEditorRef, EditorProps>(
 					const newState = editorRef.current!.state.apply(transaction);
 					editorRef.current!.updateState(newState);
 					// 3. 內容有变化时，触发保存
-					if (transaction.docChanged) debouncedSave()
+					if (transaction.docChanged) debouncedSave();
 				},
 			});
 		}, [debouncedSave]);

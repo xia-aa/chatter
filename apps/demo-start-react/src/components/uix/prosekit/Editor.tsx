@@ -17,7 +17,7 @@ import {
 	markdownFromHTML,
 } from '#/components/uix/md/transformer/mdAndHtml.ts';
 import { defineExtension } from '#/components/uix/prosekit/extension.ts';
-import { documentToMd } from '#/components/uix/prosemirror/utils.tsx';
+import { UseKeymap } from '#/components/uix/prosekit/UseKeymap.tsx';
 
 export interface TextEditorRef {
 	save: () => { json: NodeJSON; md: string };
@@ -31,7 +31,15 @@ export type EditorProps = {
 	onKeydown?: () => void;
 };
 export const TextEditor = forwardRef<TextEditorRef, EditorProps>(
-	({ initialValue, onSave, className, onKeydown }, ref) => {
+	(
+		{
+			initialValue,
+			onSave,
+			className = 'p-4 prose dark:prose-invert prose-neutral',
+			onKeydown,
+		},
+		ref,
+	) => {
 		const imageFileCacheRef = useRef(new Map<string, File>());
 		const editor = useMemo(
 			() =>
@@ -59,21 +67,19 @@ export const TextEditor = forwardRef<TextEditorRef, EditorProps>(
 			[save],
 		);
 		const handleDocChange = useCallback(
-			(doc: Node) => onSave?.(doc.toJSON()),
-			[onSave],
+			(doc: Node) => onSave?.(markdownFromHTML(editor.getDocHTML())),
+			[onSave, editor.getDocHTML],
 		);
 		useDocChange(handleDocChange, { editor });
-		useKeymap({
-			// 'keydown' 事件会直接调用此函数
-			Enter: (state, event) => {
-				// '*' 作为通配符表示拦截所有键按下事件
-				return onKeydown?.() ?? false;
-			},
-		});
+
 		return (
 			<ProseKit editor={editor}>
-				<div>
-					<div ref={editor.mount} />
+				<div className="cursor-text">
+					<div
+						ref={editor.mount}
+						className={`relative max-w-none ${className}`}
+					/>
+					<UseKeymap onKeydown={onKeydown} />
 				</div>
 			</ProseKit>
 		);
