@@ -1,0 +1,13 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "start-react",
+	"compatibility_date": "2025-09-02",
+	"compatibility_flags": [
+		"nodejs_compat", "nodejs_compat_populate_process_env", "no_handle_cross_request_promise_resolution"
+	],
+	"main": "@tanstack/react-start/server-entry",
+	"vars": {
+		"VITE_APP_URL": "https://start-react.nahida-aa.workers.dev",
+		"VITE_S3_URL": "unknown"
+	}
+}
