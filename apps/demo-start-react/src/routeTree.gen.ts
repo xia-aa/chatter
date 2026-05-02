@@ -27,6 +27,7 @@ import { Route as ApiFriend_requestRouteImport } from './routes/api/friend_reque
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as IntegrationGuitarsIndexRouteImport } from './routes/integration/guitars/index'
 import { Route as IntegrationBetterAuthIndexRouteImport } from './routes/integration/better-auth/index'
+import { Route as DemoFormIndexRouteImport } from './routes/demo/form/index'
 import { Route as DemoChatIndexRouteImport } from './routes/demo/chat/index'
 import { Route as BaseS3IndexRouteImport } from './routes/base/s3/index'
 import { Route as UiActionButtonRouteImport } from './routes/ui/action/button'
@@ -47,6 +48,7 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as DemoChatDmRouteRouteImport } from './routes/demo/chat/_dm/route'
 import { Route as UiDisplayMdIndexRouteImport } from './routes/ui/display/md/index'
 import { Route as UiDisplayMdTiptapRouteImport } from './routes/ui/display/md/tiptap'
+import { Route as UiDisplayMdProsekitRouteImport } from './routes/ui/display/md/prosekit'
 import { Route as IntegrationApiAiTtsRouteImport } from './routes/integration/api.ai.tts'
 import { Route as IntegrationApiAiTranscriptionRouteImport } from './routes/integration/api.ai.transcription'
 import { Route as IntegrationApiAiStructuredRouteImport } from './routes/integration/api.ai.structured'
@@ -148,6 +150,11 @@ const IntegrationBetterAuthIndexRoute =
     path: '/integration/better-auth/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const DemoFormIndexRoute = DemoFormIndexRouteImport.update({
+  id: '/demo/form/',
+  path: '/demo/form/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemoChatIndexRoute = DemoChatIndexRouteImport.update({
   id: '/demo/chat/',
   path: '/demo/chat/',
@@ -254,6 +261,11 @@ const UiDisplayMdTiptapRoute = UiDisplayMdTiptapRouteImport.update({
   path: '/ui/display/md/tiptap',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UiDisplayMdProsekitRoute = UiDisplayMdProsekitRouteImport.update({
+  id: '/ui/display/md/prosekit',
+  path: '/ui/display/md/prosekit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IntegrationApiAiTtsRoute = IntegrationApiAiTtsRouteImport.update({
   id: '/integration/api/ai/tts',
   path: '/integration/api/ai/tts',
@@ -333,6 +345,7 @@ export interface FileRoutesByFullPath {
   '/ui/action/button': typeof UiActionButtonRoute
   '/base/s3/': typeof BaseS3IndexRoute
   '/demo/chat/': typeof DemoChatIndexRoute
+  '/demo/form/': typeof DemoFormIndexRoute
   '/integration/better-auth/': typeof IntegrationBetterAuthIndexRoute
   '/integration/guitars/': typeof IntegrationGuitarsIndexRoute
   '/base/http/api/err': typeof BaseHttpApiErrRoute
@@ -342,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/integration/api/ai/structured': typeof IntegrationApiAiStructuredRoute
   '/integration/api/ai/transcription': typeof IntegrationApiAiTranscriptionRoute
   '/integration/api/ai/tts': typeof IntegrationApiAiTtsRoute
+  '/ui/display/md/prosekit': typeof UiDisplayMdProsekitRoute
   '/ui/display/md/tiptap': typeof UiDisplayMdTiptapRoute
   '/ui/display/md/': typeof UiDisplayMdIndexRoute
   '/ui/display/md/prosemirror/': typeof UiDisplayMdProsemirrorIndexRoute
@@ -380,6 +394,7 @@ export interface FileRoutesByTo {
   '/integration/zod/file': typeof IntegrationZodFileRoute
   '/ui/action/button': typeof UiActionButtonRoute
   '/base/s3': typeof BaseS3IndexRoute
+  '/demo/form': typeof DemoFormIndexRoute
   '/integration/better-auth': typeof IntegrationBetterAuthIndexRoute
   '/integration/guitars': typeof IntegrationGuitarsIndexRoute
   '/base/http/api/err': typeof BaseHttpApiErrRoute
@@ -389,6 +404,7 @@ export interface FileRoutesByTo {
   '/integration/api/ai/structured': typeof IntegrationApiAiStructuredRoute
   '/integration/api/ai/transcription': typeof IntegrationApiAiTranscriptionRoute
   '/integration/api/ai/tts': typeof IntegrationApiAiTtsRoute
+  '/ui/display/md/prosekit': typeof UiDisplayMdProsekitRoute
   '/ui/display/md/tiptap': typeof UiDisplayMdTiptapRoute
   '/ui/display/md': typeof UiDisplayMdIndexRoute
   '/ui/display/md/prosemirror': typeof UiDisplayMdProsemirrorIndexRoute
@@ -429,6 +445,7 @@ export interface FileRoutesById {
   '/ui/action/button': typeof UiActionButtonRoute
   '/base/s3/': typeof BaseS3IndexRoute
   '/demo/chat/': typeof DemoChatIndexRoute
+  '/demo/form/': typeof DemoFormIndexRoute
   '/integration/better-auth/': typeof IntegrationBetterAuthIndexRoute
   '/integration/guitars/': typeof IntegrationGuitarsIndexRoute
   '/base/http/api/err': typeof BaseHttpApiErrRoute
@@ -438,6 +455,7 @@ export interface FileRoutesById {
   '/integration/api/ai/structured': typeof IntegrationApiAiStructuredRoute
   '/integration/api/ai/transcription': typeof IntegrationApiAiTranscriptionRoute
   '/integration/api/ai/tts': typeof IntegrationApiAiTtsRoute
+  '/ui/display/md/prosekit': typeof UiDisplayMdProsekitRoute
   '/ui/display/md/tiptap': typeof UiDisplayMdTiptapRoute
   '/ui/display/md/': typeof UiDisplayMdIndexRoute
   '/ui/display/md/prosemirror/': typeof UiDisplayMdProsemirrorIndexRoute
@@ -479,6 +497,7 @@ export interface FileRouteTypes {
     | '/ui/action/button'
     | '/base/s3/'
     | '/demo/chat/'
+    | '/demo/form/'
     | '/integration/better-auth/'
     | '/integration/guitars/'
     | '/base/http/api/err'
@@ -488,6 +507,7 @@ export interface FileRouteTypes {
     | '/integration/api/ai/structured'
     | '/integration/api/ai/transcription'
     | '/integration/api/ai/tts'
+    | '/ui/display/md/prosekit'
     | '/ui/display/md/tiptap'
     | '/ui/display/md/'
     | '/ui/display/md/prosemirror/'
@@ -526,6 +546,7 @@ export interface FileRouteTypes {
     | '/integration/zod/file'
     | '/ui/action/button'
     | '/base/s3'
+    | '/demo/form'
     | '/integration/better-auth'
     | '/integration/guitars'
     | '/base/http/api/err'
@@ -535,6 +556,7 @@ export interface FileRouteTypes {
     | '/integration/api/ai/structured'
     | '/integration/api/ai/transcription'
     | '/integration/api/ai/tts'
+    | '/ui/display/md/prosekit'
     | '/ui/display/md/tiptap'
     | '/ui/display/md'
     | '/ui/display/md/prosemirror'
@@ -574,6 +596,7 @@ export interface FileRouteTypes {
     | '/ui/action/button'
     | '/base/s3/'
     | '/demo/chat/'
+    | '/demo/form/'
     | '/integration/better-auth/'
     | '/integration/guitars/'
     | '/base/http/api/err'
@@ -583,6 +606,7 @@ export interface FileRouteTypes {
     | '/integration/api/ai/structured'
     | '/integration/api/ai/transcription'
     | '/integration/api/ai/tts'
+    | '/ui/display/md/prosekit'
     | '/ui/display/md/tiptap'
     | '/ui/display/md/'
     | '/ui/display/md/prosemirror/'
@@ -623,6 +647,7 @@ export interface RootRouteChildren {
   UiActionButtonRoute: typeof UiActionButtonRoute
   BaseS3IndexRoute: typeof BaseS3IndexRoute
   DemoChatIndexRoute: typeof DemoChatIndexRoute
+  DemoFormIndexRoute: typeof DemoFormIndexRoute
   IntegrationBetterAuthIndexRoute: typeof IntegrationBetterAuthIndexRoute
   IntegrationGuitarsIndexRoute: typeof IntegrationGuitarsIndexRoute
   BaseHttpApiErrRoute: typeof BaseHttpApiErrRoute
@@ -631,6 +656,7 @@ export interface RootRouteChildren {
   IntegrationApiAiStructuredRoute: typeof IntegrationApiAiStructuredRoute
   IntegrationApiAiTranscriptionRoute: typeof IntegrationApiAiTranscriptionRoute
   IntegrationApiAiTtsRoute: typeof IntegrationApiAiTtsRoute
+  UiDisplayMdProsekitRoute: typeof UiDisplayMdProsekitRoute
   UiDisplayMdTiptapRoute: typeof UiDisplayMdTiptapRoute
   UiDisplayMdIndexRoute: typeof UiDisplayMdIndexRoute
   UiDisplayMdProsemirrorIndexRoute: typeof UiDisplayMdProsemirrorIndexRoute
@@ -762,6 +788,13 @@ declare module '@tanstack/react-router' {
       path: '/integration/better-auth'
       fullPath: '/integration/better-auth/'
       preLoaderRoute: typeof IntegrationBetterAuthIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/form/': {
+      id: '/demo/form/'
+      path: '/demo/form'
+      fullPath: '/demo/form/'
+      preLoaderRoute: typeof DemoFormIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/chat/': {
@@ -904,6 +937,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UiDisplayMdTiptapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ui/display/md/prosekit': {
+      id: '/ui/display/md/prosekit'
+      path: '/ui/display/md/prosekit'
+      fullPath: '/ui/display/md/prosekit'
+      preLoaderRoute: typeof UiDisplayMdProsekitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/integration/api/ai/tts': {
       id: '/integration/api/ai/tts'
       path: '/integration/api/ai/tts'
@@ -1010,6 +1050,7 @@ const rootRouteChildren: RootRouteChildren = {
   UiActionButtonRoute: UiActionButtonRoute,
   BaseS3IndexRoute: BaseS3IndexRoute,
   DemoChatIndexRoute: DemoChatIndexRoute,
+  DemoFormIndexRoute: DemoFormIndexRoute,
   IntegrationBetterAuthIndexRoute: IntegrationBetterAuthIndexRoute,
   IntegrationGuitarsIndexRoute: IntegrationGuitarsIndexRoute,
   BaseHttpApiErrRoute: BaseHttpApiErrRoute,
@@ -1018,6 +1059,7 @@ const rootRouteChildren: RootRouteChildren = {
   IntegrationApiAiStructuredRoute: IntegrationApiAiStructuredRoute,
   IntegrationApiAiTranscriptionRoute: IntegrationApiAiTranscriptionRoute,
   IntegrationApiAiTtsRoute: IntegrationApiAiTtsRoute,
+  UiDisplayMdProsekitRoute: UiDisplayMdProsekitRoute,
   UiDisplayMdTiptapRoute: UiDisplayMdTiptapRoute,
   UiDisplayMdIndexRoute: UiDisplayMdIndexRoute,
   UiDisplayMdProsemirrorIndexRoute: UiDisplayMdProsemirrorIndexRoute,

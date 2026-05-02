@@ -22,7 +22,7 @@ export function ErrorCard({ error, reset, info }: ErrorComponentProps) {
 				原因: <Description>{String(error.cause)}</Description>
 				<Description>{info?.componentStack}</Description>
 				<Description>{error.stack}</Description>
-				<div className="flex gap-2 mt-2 ">
+				<div className="grid grid-cols-2 gap-3 mt-2 ">
 					<Button variant="secondary" onClick={() => window.history.back()}>
 						<ArrowLeft />
 						{m.goBack()}

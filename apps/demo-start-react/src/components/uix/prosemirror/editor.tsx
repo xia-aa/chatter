@@ -184,15 +184,6 @@ const PureEditor = forwardRef<TextEditorRef, EditorProps>(
 				const state = EditorState.create({
 					doc: jsonToDocument(initialValue),
 					plugins: [
-						inputRules({
-							rules: [
-								// headingRule(6),
-								// blockQuoteRule(),
-								// bulletListRule(),
-								// orderedListRule(),
-								// codeBlockRule(), // 加入代碼塊規則
-							],
-						}),
 						keymap({
 							Enter: codeBlockEnter,
 							Backspace: createCodeBlockBackspace(),
@@ -230,15 +221,12 @@ const PureEditor = forwardRef<TextEditorRef, EditorProps>(
 		}, [initialValue, handlePaste, onKeydown]);
 		useEffect(() => {
 			if (!editorRef.current) return;
-
 			editorRef.current.setProps({
 				dispatchTransaction: (transaction) => {
 					const newState = editorRef.current!.state.apply(transaction);
 					editorRef.current!.updateState(newState);
-					// 3. 內容有變動時，觸發防抖
-					if (transaction.docChanged) {
-						debouncedSave();
-					}
+					// 3. 內容有变化时，触发保存
+					if (transaction.docChanged) debouncedSave()
 				},
 			});
 		}, [debouncedSave]);

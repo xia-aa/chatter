@@ -28,19 +28,7 @@ export const { useAppForm } = createFormHook({
 		Form,
 		FormFloatingSaveBar,
 		SyncToLocalStorage,
-		// Devtool: dev
-		// 	? () => {
-		// 			const form = useFormContext();
-		// 			return (
-		// 				<form.Subscribe
-		// 					children={(state) => {
-		// 						console.log(state);
-		// 						return null;
-		// 					}}
-		// 				/>
-		// 			);
-		// 		}
-		// 	: () => null,
+
 	},
 });
 export const FileItem = ({

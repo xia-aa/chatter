@@ -14,3 +14,4 @@ title: "Agent Guidelines"
 ## Topic Guides
 
 - [TypeScript Conventions](.agents/typescript.md): Type inference, casting rules, generic naming
+- [Workflow](./workflow.md)

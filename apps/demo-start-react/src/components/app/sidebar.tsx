@@ -130,6 +130,10 @@ export function DemoSidebar() {
 		{
 			title: 'Demo',
 			children: [
+							{
+					title: 'Form',
+					link: '/demo/form',
+				},
 				{
 					title: 'Todo',
 					link: '/demo/todo',
@@ -261,6 +265,10 @@ export function DemoSidebar() {
 						{
 							title: 'ProseMirror',
 							link: '/ui/display/md/prosemirror/',
+						},
+								{
+							title: 'ProseKit',
+							link: '/ui/display/md/prosekit/',
 						},
 					],
 				},

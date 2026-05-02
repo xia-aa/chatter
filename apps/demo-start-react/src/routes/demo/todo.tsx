@@ -19,6 +19,7 @@ import { addTodoZ, type Todo } from '#/features/todo/todo.schema.ts';
 import { authClient } from '#/lib/auth/auth-client.ts';
 import { useFileUpload } from '#/lib/upload/useFileUpload.ts';
 import { formatToNow } from '#/lib/utils.timeFormat.ts';
+import { Loading } from '#/components/uix/loading.tsx';
 
 export const Route = createFileRoute('/demo/todo')({
 	loader: async () => {
@@ -65,7 +66,7 @@ function TodoListClient() {
 	);
 	console.log({
 		isDate: todos?.[0]?.updated_at instanceof Date,
-		length: todos?.length,
+		todos,
 	});
 	useEffect(() => {
 		if (!isIntersecting) return;
@@ -97,7 +98,7 @@ function TodoListFallback() {
 function TodoCard({ todo }: { todo: TodoRow }) {
 	return (
 		<div
-			className={`bg-muted p-2 rounded-md  ${!todo.$synced && 'animate-pulse'}`}
+			className={`bg-muted p-2 rounded-md`}
 		>
 			<div className="flex justify-between items-center">
 				<div className="flex items-center gap-2">
@@ -120,6 +121,7 @@ function TodoCard({ todo }: { todo: TodoRow }) {
 					</button>
 					<h3>{todo.title}</h3>
 					<span>{todo.id}</span>
+					{!todo.$synced && <Loading className="m-1.25 size-6 text-primary" />}
 				</div>
 				<Button
 					size={'sm'}
