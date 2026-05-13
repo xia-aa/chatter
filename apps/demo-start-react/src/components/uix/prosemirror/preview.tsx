@@ -3,7 +3,7 @@
 import type { Json } from 'drizzle-zod';
 import { DOMSerializer, Node } from 'prosemirror-model';
 import { useMemo } from 'react';
-import { jsonToHtml } from '#/components/uix/prosemirror/utils.tsx';
+import { jsonToHtml } from '#/components/uix/prosemirror/transformer/html.ts';
 
 export function TextPreview({
 	docJson,

@@ -1,9 +1,7 @@
-import type { NodeViewContextProps } from '@prosemirror-adapter/solid';
-import { useNodeViewContext } from '@prosemirror-adapter/solid';
+import { useNodeViewContext } from '@prosemirror-adapter/react';
 import { clsx } from 'clsx';
-import { LucideChevronDown } from 'lucide-react';
-import { createMemo, For, Show } from 'solid-js';
-import { Dynamic } from 'solid-js/web';
+import { ChevronDown } from 'lucide-react';
+import { useMemo } from 'react';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -16,54 +14,46 @@ import styles from './AlertView.module.css';
 import type { GithubAlertType } from './config';
 import { githubAlertTypeKeys, githubAlertTypeMap } from './config';
 
-export function AlertView(props: NodeViewContextProps) {
+export function AlertView() {
 	const context = useNodeViewContext();
 
-	const selectedType = createMemo(
-		() => context().node.attrs.type as GithubAlertType,
+	const selectedType = useMemo(
+		() => context.node.attrs.type as GithubAlertType,
+		[context.node.attrs.type],
 	);
+
+	const data = githubAlertTypeMap[selectedType];
+
+	if (!data) return null;
 
 	return (
 		<NodeViewWrapper>
 			<div
-				className={`markdown-alert markdown-alert-${context().node.attrs.type}`}
-				dir={'auto'}
+				className={`markdown-alert markdown-alert-${context.node.attrs.type}`}
+				dir="auto"
 			>
-				<Show when={githubAlertTypeMap[selectedType()]}>
-					{(data) => (
-						<p
-							className={clsx(styles.gitHubAlertTitle, 'markdown-alert-title')}
-							dir={'auto'}
-						>
-							<DropdownMenu>
-								<DropdownMenuTrigger className={styles.gitHubAlertSwitchButton}>
-									<Dynamic component={data().icon} />
-									{data().label}
-
-									<LucideChevronDown size={12} />
-								</DropdownMenuTrigger>
-								<DropdownMenuContent>
-									<DropdownMenuRadioGroup
-										value={selectedType()}
-										onChange={(value) => context().setAttrs({ type: value })}
-									>
-										<For each={githubAlertTypeKeys}>
-											{(key) => (
-												<DropdownMenuRadioItem value={key}>
-													{githubAlertTypeMap[key].label}
-												</DropdownMenuRadioItem>
-											)}
-										</For>
-									</DropdownMenuRadioGroup>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</p>
-					)}
-				</Show>
-				<div
-					ref={props.contentRef}
-					className={`${styles.gitHubAlertParagraph}`}
-				/>
+				<p className={clsx(styles.gitHubAlertTitle, 'markdown-alert-title')} dir="auto">
+					<DropdownMenu>
+						<DropdownMenuTrigger className={styles.gitHubAlertSwitchButton}>
+							<data.icon />
+							{data.label}
+							<ChevronDown size={12} />
+						</DropdownMenuTrigger>
+						<DropdownMenuContent>
+							<DropdownMenuRadioGroup
+								value={selectedType}
+								onValueChange={(value) => context.setAttrs({ type: value })}
+							>
+								{githubAlertTypeKeys.map((key) => (
+									<DropdownMenuRadioItem key={key} value={key}>
+										{githubAlertTypeMap[key].label}
+									</DropdownMenuRadioItem>
+								))}
+							</DropdownMenuRadioGroup>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</p>
+				<div ref={context.contentRef} className={styles.gitHubAlertParagraph} />
 			</div>
 		</NodeViewWrapper>
 	);

@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as McpRouteImport } from './routes/mcp'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as IntegrationTanstackQueryRouteImport } from './routes/integration/tanstack-query'
@@ -58,11 +57,6 @@ import { Route as DemoChatDmDmRouteImport } from './routes/demo/chat/_dm/dm'
 import { Route as BaseHttpApiErrRouteImport } from './routes/base/http/api.err'
 import { Route as UiDisplayMdProsemirrorIndexRouteImport } from './routes/ui/display/md/prosemirror/index'
 
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -313,7 +307,6 @@ const UiDisplayMdProsemirrorIndexRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/mcp': typeof McpRoute
   '/api/$': typeof ApiSplatRoute
   '/api/friend_request': typeof ApiFriend_requestRoute
   '/api/message': typeof ApiMessageRoute
@@ -363,7 +356,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/mcp': typeof McpRoute
   '/api/$': typeof ApiSplatRoute
   '/api/friend_request': typeof ApiFriend_requestRoute
   '/api/message': typeof ApiMessageRoute
@@ -413,7 +405,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/mcp': typeof McpRoute
   '/api/$': typeof ApiSplatRoute
   '/api/friend_request': typeof ApiFriend_requestRoute
   '/api/message': typeof ApiMessageRoute
@@ -465,7 +456,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/mcp'
     | '/api/$'
     | '/api/friend_request'
     | '/api/message'
@@ -515,7 +505,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/mcp'
     | '/api/$'
     | '/api/friend_request'
     | '/api/message'
@@ -564,7 +553,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
-    | '/mcp'
     | '/api/$'
     | '/api/friend_request'
     | '/api/message'
@@ -615,7 +603,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  McpRoute: typeof McpRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ApiFriend_requestRoute: typeof ApiFriend_requestRoute
   ApiMessageRoute: typeof ApiMessageRoute
@@ -664,13 +651,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -1018,7 +998,6 @@ const DemoChatDmRouteRouteWithChildren = DemoChatDmRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  McpRoute: McpRoute,
   ApiSplatRoute: ApiSplatRoute,
   ApiFriend_requestRoute: ApiFriend_requestRoute,
   ApiMessageRoute: ApiMessageRoute,

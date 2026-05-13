@@ -8,7 +8,7 @@
       "#/*": ["./src/*"],
     },
     "lib": ["es2022", "DOM", "DOM.Iterable"],
-    "types": ["vite/client", "node"],
+    "types": ["vite/client", "@types/chrome", "node"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
