@@ -1,6 +1,11 @@
 {
   "scripts": {
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+        "intent:list": "bun x @tanstack/intent@latest list",
+    "intent:install": "bun x @tanstack/intent@latest install",
+    "intent:scaffold": "bun x @tanstack/intent@latest scaffold",
+    "intent:validate": "bun x @tanstack/intent@latest validate",
+    "intent:stale": "bun x @tanstack/intent@latest stale"
   },
   "packageManager": "bun@1.3.13",
   "workspaces": [
@@ -10,5 +15,8 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.14",
     "turbo": "^2.9.6"
+  },
+  "dependencies": {
+    "@tanstack/query-core": "^5.100.10"
   }
 }

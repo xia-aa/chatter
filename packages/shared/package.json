@@ -1,0 +1,7 @@
+{
+  "name": "@repo/shared",
+  "type": "module",
+  "dependencies": {
+    "@tanstack/query-core": "^5.100.10"
+  }
+}

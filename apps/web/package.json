@@ -1,0 +1,60 @@
+{
+  "name": "web",
+  "type": "module",
+  "imports": {
+    "#/*": "./src/*"
+  },
+  "scripts": {
+    "dev": "vite dev --port 9005",
+    "build": "vite build",
+    "start": "node .output/server/index.mjs",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.1.1",
+    "@repo/shared": "workspace:*",
+    "@repo/ui": "workspace:*",
+    "@tailwindcss/vite": "^4.1.18",
+    "@tanstack/router-plugin": "^1.133.21",
+    "@tanstack/solid-devtools": "^0.8.5",
+    "@tanstack/solid-form": "latest",
+    "@tanstack/solid-form-devtools": "^0.2.27",
+    "@tanstack/solid-query": "latest",
+    "@tanstack/solid-query-devtools": "latest",
+    "@tanstack/solid-router": "latest",
+    "@tanstack/solid-router-devtools": "latest",
+    "@tanstack/solid-router-ssr-query": "latest",
+    "@tanstack/solid-start": "latest",
+    "@tanstack/solid-store": "latest",
+    "@tanstack/store": "latest",
+    "@types/markdown-it": "^14.1.2",
+    "better-auth": "^1.5.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "highlight.js": "^11.11.1",
+    "lucide-solid": "^0.577.0",
+    "markdown-it": "^14.1.1",
+    "nitro": "npm:nitro-nightly@latest",
+    "solid-js": "^1.9.12",
+    "tailwind-merge": "^3.0.2",
+    "tailwindcss": "^4.1.18",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@solidjs/testing-library": "^0.8.10",
+    "@tanstack/devtools-vite": "latest",
+    "jsdom": "^28.1.0",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.0",
+    "vite-plugin-solid": "^2.11.12",
+    "vitest": "^4.1.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "lightningcss"
+    ]
+  }
+}

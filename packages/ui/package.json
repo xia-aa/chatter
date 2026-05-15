@@ -1,0 +1,16 @@
+{
+  "name": "@repo/ui",
+  "type": "module",
+  "dependencies": {
+    "@kobalte/core": "^0.13.11",
+    "@tanstack/query-core": "^5.100.10",
+    "@tanstack/solid-form": "^1.32.0",
+    "@tanstack/solid-router": "^1.169.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-solid": "^1.16.0",
+    "solid-js": "^1.9.12",
+    "solid-sonner": "^0.3.1",
+    "tailwind-merge": "^3.6.0"
+  }
+}
