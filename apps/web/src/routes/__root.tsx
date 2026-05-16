@@ -24,6 +24,7 @@ import { Suspense } from 'solid-js';
 import { HydrationScript } from 'solid-js/web';
 import { sessionQuery } from '#/lib/auth/auth.query.ts';
 import Header from '../components/Header';
+import PwaRegister from '../components/PwaRegister';
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -47,6 +48,17 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				href: '/favicon.svg',
 				sizes: 'any',
 			},
+			{ rel: 'manifest', href: '/manifest.json' },
+			{
+				rel: 'apple-touch-icon',
+				sizes: '192x192',
+				href: '/favicon-192x192.png',
+			},
+		],
+		meta: [
+			{ name: 'theme-color', content: '#B0E0E6' },
+			{ name: 'apple-mobile-web-app-capable', content: 'yes' },
+			{ name: 'apple-mobile-web-app-status-bar-style', content: 'black' },
 		],
 		scripts: [{ children: themeScript }],
 	}),
@@ -84,6 +96,7 @@ function RootComponent() {
 					/> */}
 				</Suspense>
 				<Scripts />
+			<PwaRegister />
 			</body>
 		</html>
 	);

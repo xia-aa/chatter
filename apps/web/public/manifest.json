@@ -1,35 +1,30 @@
 {
   "short_name": "chatter",
   "name": "chatter",
+  "description": "A TanStack Start chat application",
   "icons": [
     {
       "src": "favicon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "favicon-16x16.png",
-      "type": "image/png",
-      "sizes": "16x16"
-    },
-    {
-      "src": "favicon-32x32.png",
-      "type": "image/png",
-      "sizes": "32x32"
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
       "src": "favicon-192x192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "favicon-512x512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "theme_color": "#B0E0E6",
   "background_color": "#ffffff"
 }
