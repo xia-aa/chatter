@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#80a0f0" /> 
+      <stop offset="25%" stop-color="#9bbced" /> 
+      <stop offset="40%" stop-color="#B0E0E6" /> 
+      <stop offset="50%" stop-color="#f5e7f5" /> 
+      <stop offset="60%" stop-color="#ead5ea" />   
+      <stop offset="75%" stop-color="#D8BFD8" />  
+      <stop offset="100%" stop-color="#FFB6C1" /> 
+    </linearGradient>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#80a0f0" /> 
+      <stop offset="50%" stop-color="#9bbced" /> 
+      <stop offset="90%" stop-color="#B0E0E6" /> 
+      <stop offset="100%" stop-color="#B0E0E6" /> 
+    </linearGradient>
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5e7f5" />   
+      <stop offset="50%" stop-color="#D8BFD8" />  
+      <stop offset="100%" stop-color="#FFB6C1" /> 
+    </linearGradient>
+    <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5e7f5" />   
+      <stop offset="100%" stop-color="#B0E0E6" /> 
+    </linearGradient>
+    <linearGradient id="gradient4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#B0E0E6" />  
+      <stop offset="15%" stop-color="#B0E0E6" />  
+      <stop offset="70%" stop-color="#f5e7f5" />  
+      <stop offset="100%" stop-color="#f5e7f5" /> 
+    </linearGradient>
+  </defs>
+  <g stroke="url(#gradient)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 左上角点, 右上角点, 右下角点, 左下角点 -->
+    <path d="M 15,13 L 49,7 L 53,57 L 9,49 Z" stroke="url(#gradient)" />
+    <line x1="15" y1="13" x2="32.5" y2="31.5" stroke="url(#gradient1)" /> 
+    <line x1="49" y1="7" x2="32.5" y2="31.5"  /> 
+    <line x1="53" y1="57" x2="32.5" y2="31.5" stroke="url(#gradient2)" /> 
+    <line x1="9" y1="49" x2="32.5" y2="31.5"  /> 
+    <circle cx="32.5" cy="31.5" r="4" fill="url(#gradient4)" stroke="none" />
+
+  </g>
+</svg>

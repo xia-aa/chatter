@@ -3,7 +3,7 @@ import z from 'zod';
 
 export const Route = createFileRoute('/_auth')({
 	validateSearch: z.object({
-		callbackURL: z.string().default('/'),
+		callbackURL: z.string().optional(),
 	}),
 	component: RouteComponent,
 });

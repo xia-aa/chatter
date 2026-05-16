@@ -1,9 +1,8 @@
-// https://sonner.emilkowal.ski/
 
 // import { Alert, AlertTitle } from "#/components/ui/alert";
 import { AlertCircleIcon, XIcon } from 'lucide-solid';
 import { type ExternalToast, toast as sonnerToast } from 'solid-sonner';
-import { Button } from '../ui/button';
+import { Button } from '../base/button';
 import { UxAlert } from './alert';
 import { JsonViewer } from './CodeBlock/JsonViewer';
 import type { JSX } from 'solid-js';

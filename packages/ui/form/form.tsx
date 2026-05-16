@@ -10,9 +10,9 @@ import { cn } from '../lib/utils';
 import { useTheme } from '../theme';
 import { Button } from '../base/button';
 import { Spinner } from '../base/spinner';
-import { toast } from 'solid-sonner';
-import { Toaster } from '../base/sonner';
+import { toast, Toaster } from '../base/sonner';
 import { toastError } from '../custom/toast';
+import { ClientOnly } from '@tanstack/solid-router';
 export const { fieldContext, formContext, useFieldContext, useFormContext } =
 	createFormHookContexts();
 
@@ -22,13 +22,15 @@ export const Form = (p: {
 	onSubmit?: () => void | Promise<void>;
 	id?: string;
 }) => {
+	const form = useFormContext()
 	return (
+		<ClientOnly>
 		<form
 			class={p.class}
 			onSubmit={async (e) => {
 				e.preventDefault();
 				try {
-					await p.onSubmit?.();
+					await (p.onSubmit ? p.onSubmit!() : form.handleSubmit());
 				} catch (error) {
 					toastError(error);
 				}
@@ -37,6 +39,7 @@ export const Form = (p: {
 		>
 			{p.children}
 		</form>
+		</ClientOnly>
 	);
 };
 export const SubmitButton = (props: ComponentProps<typeof Button> & {
@@ -193,14 +196,14 @@ export const FloatingSaveBar = ({
 		} else {
 			toast.dismiss(TOAST_ID);
 		}
-	}, [view, isSubmitting, reset]);
+	});
 	createEffect(() => {
 		if (isSubmitSuccessful) {
 			console.log('FloatingSaveBar.useEffect: isSubmitSuccessful');
 			reset();
 			toast.dismiss(TOAST_ID);
 		}
-	}, [isSubmitSuccessful, reset]);
+	});
 
 	return <Toaster id="form" theme={activeTheme()} />;
 };

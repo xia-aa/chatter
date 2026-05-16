@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ExampleChatRouteImport } from './routes/example.chat'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
 import { Route as DemoStoreRouteImport } from './routes/demo.store'
+import { Route as DemoSolidRouteImport } from './routes/demo/solid'
 import { Route as DemoFormRouteImport } from './routes/demo.form'
 import { Route as AuthAuthRouteImport } from './routes/_auth/auth'
+import { Route as DemoSseIndexRouteImport } from './routes/demo/sse/index'
+import { Route as DemoSseChatApiRouteImport } from './routes/demo/sse/chat-api'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const AboutRoute = AboutRouteImport.update({
@@ -33,11 +35,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ExampleChatRoute = ExampleChatRouteImport.update({
-  id: '/example/chat',
-  path: '/example/chat',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   id: '/demo/tanstack-query',
   path: '/demo/tanstack-query',
@@ -46,6 +43,11 @@ const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
 const DemoStoreRoute = DemoStoreRouteImport.update({
   id: '/demo/store',
   path: '/demo/store',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoSolidRoute = DemoSolidRouteImport.update({
+  id: '/demo/solid',
+  path: '/demo/solid',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoFormRoute = DemoFormRouteImport.update({
@@ -58,6 +60,16 @@ const AuthAuthRoute = AuthAuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const DemoSseIndexRoute = DemoSseIndexRouteImport.update({
+  id: '/demo/sse/',
+  path: '/demo/sse/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoSseChatApiRoute = DemoSseChatApiRouteImport.update({
+  id: '/demo/sse/chat-api',
+  path: '/demo/sse/chat-api',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -69,20 +81,24 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/auth': typeof AuthAuthRoute
   '/demo/form': typeof DemoFormRoute
+  '/demo/solid': typeof DemoSolidRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/example/chat': typeof ExampleChatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/demo/sse/chat-api': typeof DemoSseChatApiRoute
+  '/demo/sse/': typeof DemoSseIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthAuthRoute
   '/demo/form': typeof DemoFormRoute
+  '/demo/solid': typeof DemoSolidRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/example/chat': typeof ExampleChatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/demo/sse/chat-api': typeof DemoSseChatApiRoute
+  '/demo/sse': typeof DemoSseIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -91,10 +107,12 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/_auth/auth': typeof AuthAuthRoute
   '/demo/form': typeof DemoFormRoute
+  '/demo/solid': typeof DemoSolidRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/example/chat': typeof ExampleChatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/demo/sse/chat-api': typeof DemoSseChatApiRoute
+  '/demo/sse/': typeof DemoSseIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -103,20 +121,24 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/demo/form'
+    | '/demo/solid'
     | '/demo/store'
     | '/demo/tanstack-query'
-    | '/example/chat'
     | '/api/auth/$'
+    | '/demo/sse/chat-api'
+    | '/demo/sse/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/auth'
     | '/demo/form'
+    | '/demo/solid'
     | '/demo/store'
     | '/demo/tanstack-query'
-    | '/example/chat'
     | '/api/auth/$'
+    | '/demo/sse/chat-api'
+    | '/demo/sse'
   id:
     | '__root__'
     | '/'
@@ -124,10 +146,12 @@ export interface FileRouteTypes {
     | '/about'
     | '/_auth/auth'
     | '/demo/form'
+    | '/demo/solid'
     | '/demo/store'
     | '/demo/tanstack-query'
-    | '/example/chat'
     | '/api/auth/$'
+    | '/demo/sse/chat-api'
+    | '/demo/sse/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -135,10 +159,12 @@ export interface RootRouteChildren {
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   DemoFormRoute: typeof DemoFormRoute
+  DemoSolidRoute: typeof DemoSolidRoute
   DemoStoreRoute: typeof DemoStoreRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
-  ExampleChatRoute: typeof ExampleChatRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  DemoSseChatApiRoute: typeof DemoSseChatApiRoute
+  DemoSseIndexRoute: typeof DemoSseIndexRoute
 }
 
 declare module '@tanstack/solid-router' {
@@ -164,13 +190,6 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/example/chat': {
-      id: '/example/chat'
-      path: '/example/chat'
-      fullPath: '/example/chat'
-      preLoaderRoute: typeof ExampleChatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/demo/tanstack-query': {
       id: '/demo/tanstack-query'
       path: '/demo/tanstack-query'
@@ -183,6 +202,13 @@ declare module '@tanstack/solid-router' {
       path: '/demo/store'
       fullPath: '/demo/store'
       preLoaderRoute: typeof DemoStoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/solid': {
+      id: '/demo/solid'
+      path: '/demo/solid'
+      fullPath: '/demo/solid'
+      preLoaderRoute: typeof DemoSolidRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/form': {
@@ -198,6 +224,20 @@ declare module '@tanstack/solid-router' {
       fullPath: '/auth'
       preLoaderRoute: typeof AuthAuthRouteImport
       parentRoute: typeof AuthRouteRoute
+    }
+    '/demo/sse/': {
+      id: '/demo/sse/'
+      path: '/demo/sse'
+      fullPath: '/demo/sse/'
+      preLoaderRoute: typeof DemoSseIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/sse/chat-api': {
+      id: '/demo/sse/chat-api'
+      path: '/demo/sse/chat-api'
+      fullPath: '/demo/sse/chat-api'
+      preLoaderRoute: typeof DemoSseChatApiRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -226,20 +266,23 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRouteRoute: AuthRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   DemoFormRoute: DemoFormRoute,
+  DemoSolidRoute: DemoSolidRoute,
   DemoStoreRoute: DemoStoreRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
-  ExampleChatRoute: ExampleChatRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  DemoSseChatApiRoute: DemoSseChatApiRoute,
+  DemoSseIndexRoute: DemoSseIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/solid-start'
+import type { startInstance } from './start.ts'
 declare module '@tanstack/solid-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

@@ -2,6 +2,11 @@
   "name": "@repo/shared",
   "type": "module",
   "dependencies": {
-    "@tanstack/query-core": "^5.100.10"
+    "@electric-sql/client": "^1.5.17",
+    "@tanstack/query-core": "^5.100.10",
+    "drizzle-orm": "^0.45.2"
+  },
+  "devDependencies": {
+    "vite": "^8.0.13"
   }
 }

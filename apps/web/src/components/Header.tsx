@@ -1,6 +1,6 @@
-import { Link } from '@tanstack/solid-router';
+import { ClientOnly, Link } from '@tanstack/solid-router';
 
-import BetterAuthHeader from '../integrations/better-auth/header-user.tsx';
+import BetterAuthHeader from '../lib/auth/header-user.tsx';
 
 export default function Header() {
 	return (

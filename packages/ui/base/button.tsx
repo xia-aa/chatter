@@ -10,7 +10,7 @@ export const buttonVariants = cva(
 		variants: {
 			variant: {
 				default:
-					'rounded-md bg-primary text-primary-foreground hover:bg-primary/90',
+					'rounded-xs bg-primary text-primary-foreground hover:bg-primary/90',
 				destructive:
 					'rounded-md bg-destructive/20 hover:bg-destructive/30 text-destructive   focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 ',
 				// "bg-destructive/10 hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/20 text-destructive focus-visible:border-destructive/40 dark:hover:bg-destructive/30",
@@ -19,7 +19,7 @@ export const buttonVariants = cva(
 				outline:
 					'rounded-md border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50',
 				secondary:
-					'rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80',
+					'rounded-xs bg-secondary text-secondary-foreground hover:bg-secondary/80',
 				ghost:
 					' hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
 				link: 'text-primary underline-offset-4 hover:underline',
@@ -32,7 +32,7 @@ export const buttonVariants = cva(
 			size: {
 				xs: 'h-6 rounded-md gap-1 px-2 has-[>svg]:px-2',
 				sm: 'h-8 rounded-md gap-2 px-3 has-[>svg]:px-2.5 [&_svg:not([class*="size-"])]:size-5',
-				default: 'h-9 px-3 rounded-sm',
+				default: 'h-9 px-3 rounded-xs',
 				lg: 'h-10 rounded-md px-6 has-[>svg]:px-4',
 				'icon-xs':
 					"size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",

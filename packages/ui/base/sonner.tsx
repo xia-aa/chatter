@@ -1,9 +1,9 @@
-import type { Component, ComponentProps } from "solid-js"
- 
-import { Toaster as Sonner } from "solid-sonner"
+import { lazy, type Component, type ComponentProps } from "solid-js"
+ const Sonner = lazy(() => import('solid-sonner').then(m => ({ default: m.Toaster })));
  
 type ToasterProps = ComponentProps<typeof Sonner>
  
+
 export const Toaster: Component<ToasterProps> = (props) => {
   return (
     <Sonner
@@ -21,3 +21,4 @@ export const Toaster: Component<ToasterProps> = (props) => {
     />
   )
 }
+export const toast  = (await import('solid-sonner')).toast

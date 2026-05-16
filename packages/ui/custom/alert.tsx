@@ -1,5 +1,5 @@
 import { CheckCircle2, CircleX, Info, TriangleAlert } from 'lucide-solid';
-import { Alert, AlertAction, AlertDescription, AlertRootProps, AlertTitle } from '../ui/alert';
+import { Alert, AlertAction, AlertDescription, AlertRootProps, AlertTitle } from '../base/alert';
 import { ComponentProps, splitProps, type JSX } from 'solid-js';
 
 // 图标映射表
