@@ -60,6 +60,7 @@ export const ScreenShare = () => {
 						if (cancelled || sseCancelled) break;
 
 						const [msg] = to(() => JSON.parse(line));
+						// console.log('Received SSE message:', msg);
 						const m = mode();
 						if (m === 'sharing' && msg.type === 'answer' && pc) {
 							await pc
@@ -74,7 +75,7 @@ export const ScreenShare = () => {
 						} else if (m === 'idle' && msg.type === 'offer' && !pc) {
 							setStatus('Incoming screen share detected, connecting...');
 							await startWatching(msg.sdp);
-						} else if (msg.type === 'ice-candidate') {
+						} else if (msg?.type === 'ice-candidate') {
 							candidateBuffer.push(msg);
 						}
 					}
@@ -177,8 +178,9 @@ export const ScreenShare = () => {
 				setStatus('Receiving stream!');
 				// 直接设置，不依赖 Solid effect 的时序
 				if (remoteVideo) {
+					console.log('Setting remote video srcObject');
 					remoteVideo.srcObject = stream;
-					remoteVideo.play().catch(() => {});
+					remoteVideo.play().catch((e) => console.warn('play:', e));
 				}
 			};
 			pc.onicecandidate = (event) => {
@@ -229,9 +231,8 @@ export const ScreenShare = () => {
 
 	createEffect(() => {
 		const s = remoteStream();
-		if (remoteVideo && s) {
+		if (remoteVideo && s && remoteVideo.srcObject !== s) {
 			remoteVideo.srcObject = s;
-			remoteVideo.play().catch(() => {});
 		}
 	});
 
@@ -246,15 +247,8 @@ export const ScreenShare = () => {
 
 			<div class="flex gap-2">
 				<Show when={mode() === 'idle'}>
-					<button
-						onClick={startBroadcasting}
-						class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors disabled:opacity-50"
-					>
-						Share My Screen
-					</button>
-					<p class="text-sm text-gray-400 self-center">
-						Open this page in another tab to watch
-					</p>
+					<Button onClick={startBroadcasting}>Share My Screen</Button>
+					<p>Open this page in another tab to watch</p>
 				</Show>
 				<Show when={mode() !== 'idle'}>
 					<Button onClick={cleanup} variant="outline">
@@ -276,18 +270,7 @@ export const ScreenShare = () => {
 						/>
 					</div>
 				</Show>
-				<Show when={remoteStream()}>
-					<div>
-						<p class="text-sm font-medium mb-2 text-gray-700">Remote Screen</p>
-						<video
-							ref={remoteVideo}
-							autoplay
-							playsinline
-							muted
-							class="w-full rounded-lg border bg-black"
-						/>
-					</div>
-				</Show>
+
 				<div class={!remoteStream() ? 'hidden' : ''}>
 					<p>Remote Screen</p>
 					<video

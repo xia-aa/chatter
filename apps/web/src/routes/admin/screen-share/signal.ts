@@ -46,7 +46,7 @@ function flushPending(
 	for (const msg of pending[target]) {
 		controller.enqueue(encoder.encode(`${JSON.stringify(msg)}\n`));
 	}
-	pending[target] = [];
+	// pending[target] = [];
 }
 
 const handleSSE = (request: Request) => {
