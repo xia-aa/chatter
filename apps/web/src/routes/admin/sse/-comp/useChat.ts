@@ -3,7 +3,7 @@ import { useLiveQuery } from '@tanstack/solid-db';
 import { createEffect } from 'solid-js';
 import { type Message, messagesCollection } from './message.sync.ts';
 
-const chatApiPath = '/demo/sse/chat-api';
+const chatApiPath = '/admin/sse/chat-api';
 function useStreamConnection(
 	url: string,
 	collection: Collection<any, any, any>,

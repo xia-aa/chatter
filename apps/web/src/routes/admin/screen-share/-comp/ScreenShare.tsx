@@ -9,7 +9,7 @@ const ICE_SERVERS = {
 	],
 };
 
-export default function ScreenShare() {
+export function ScreenShare() {
 	const [mode, setMode] = createSignal<'idle' | 'sharing' | 'watching'>('idle');
 	const [localStream, setLocalStream] = createSignal<MediaStream | null>(null);
 	const [remoteStream, setRemoteStream] = createSignal<MediaStream | null>(

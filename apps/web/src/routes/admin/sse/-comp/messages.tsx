@@ -1,4 +1,4 @@
-import type { Message } from '#/routes/demo/sse/-comp/message.sync.ts';
+import type { Message } from '#/routes/admin/sse/-comp/message.sync.ts';
 
 export const getAvatarColor = (username: string) => {
 	const colors = [
