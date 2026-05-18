@@ -168,12 +168,18 @@ export function ScreenShare() {
 		try {
 			pc = new RTCPeerConnection(ICE_SERVERS);
 			pc.ontrack = (event) => {
-				console.log('Received remote track:', event.streams[0]);
+				const stream = event.streams[0];
+				console.log('Received remote track:', stream);
 				event.streams[0].getVideoTracks().forEach((t) => {
 					console.log('remote track:', t.kind, t.enabled, t.readyState);
 				});
-				setRemoteStream(event.streams[0]);
+				setRemoteStream(stream);
 				setStatus('Receiving stream!');
+				// 直接设置，不依赖 Solid effect 的时序
+				if (remoteVideo) {
+					remoteVideo.srcObject = stream;
+					remoteVideo.play().catch(() => {});
+				}
 			};
 			pc.onicecandidate = (event) => {
 				if (!event.candidate) return;
@@ -223,7 +229,10 @@ export function ScreenShare() {
 
 	createEffect(() => {
 		const s = remoteStream();
-		if (remoteVideo && s) remoteVideo.srcObject = s;
+		if (remoteVideo && s) {
+			remoteVideo.srcObject = s;
+			remoteVideo.play().catch(() => {});
+		}
 	});
 
 	onCleanup(cleanup);
@@ -279,6 +288,16 @@ export function ScreenShare() {
 						/>
 					</div>
 				</Show>
+				<div class={!remoteStream() ? 'hidden' : ''}>
+					<p>Remote Screen</p>
+					<video
+						ref={remoteVideo!}
+						autoplay
+						playsinline
+						muted
+						class="w-full rounded-lg border bg-black"
+					/>
+				</div>
 			</div>
 		</div>
 	);
