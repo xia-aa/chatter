@@ -35,7 +35,7 @@ const UserAvatar = (props: { name?: string; image?: string | null }) => {
 	);
 };
 
-export default function BetterAuthHeader() {
+export function BetterAuthHeader() {
 	const session = useQuery(() => sessionQuery);
 	// const session = authClient.useSession();
 	// debugSsr(session.data?.user);

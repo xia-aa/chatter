@@ -1,3 +1,4 @@
+import { to } from '@repo/shared/lib/utils/fp.ts';
 import { Button } from '@repo/ui/base/button';
 import { createEffect, createSignal, onCleanup, Show } from 'solid-js';
 
@@ -49,7 +50,8 @@ export function ScreenShare() {
 						.split('\n')
 						.filter(Boolean)) {
 						if (cancelled || sseCancelled) break;
-						const msg = JSON.parse(line);
+
+						const [msg] = to(() => JSON.parse(line));
 						const m = mode();
 						if (m === 'sharing' && msg.type === 'answer' && offerSent) {
 							try {

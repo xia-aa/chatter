@@ -73,7 +73,7 @@ function RootComponent() {
 				<HydrationScript />
 				<HeadContent />
 			</head>
-			<body>
+			<body class="h-svh">
 				<Suspense>
 					<ThemeProvider>
 						<Outlet />

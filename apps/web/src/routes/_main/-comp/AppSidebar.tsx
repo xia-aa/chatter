@@ -15,7 +15,7 @@ import {
 	SidebarMenuItem,
 } from '@repo/ui/base/sidebar.tsx';
 import { ChevronDown, User2 } from 'lucide-solid';
-import BetterAuthHeader from '#/lib/auth/header-user.tsx';
+import { BetterAuthHeader } from '#/lib/auth/header-user.tsx';
 
 export function AppSidebar() {
 	return (
