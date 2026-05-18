@@ -10,31 +10,16 @@ const ICE_SERVERS = {
 	],
 };
 
-function enforceVP8(sdp: string): string {
-	const videoMatch = sdp.match(/^m=video\s+\d+\s+[\w/]+\s+(.+)$/m);
-	if (!videoMatch) return sdp;
-
-	const allPTs = videoMatch[1].trim().split(/\s+/);
-
-	const h264PTs = allPTs.filter((pt) => {
-		const m = sdp.match(new RegExp(`^a=rtpmap:${pt}\\s+H264`, 'm'));
-		return !!m;
-	});
-	if (!h264PTs.length) return sdp;
-
-	const filteredPTs = allPTs.filter((pt) => !h264PTs.includes(pt));
-	let result = sdp.replace(
-		videoMatch[0],
-		videoMatch[0].replace(allPTs.join(' '), filteredPTs.join(' ')),
-	);
-	for (const pt of h264PTs) {
-		result = result.replace(
-			new RegExp(`^a=rtpmap:${pt}\\s+H264\\/[\\d]+$`, 'm'),
-			'',
-		);
-		result = result.replace(new RegExp(`^a=fmtp:${pt}[^\\n]*$`, 'm'), '');
+function flushCandidates(buffer: any[], pc: RTCPeerConnection | undefined) {
+	for (const c of buffer.splice(0)) {
+		pc?.addIceCandidate(
+			new RTCIceCandidate({
+				candidate: c.candidate,
+				sdpMid: c.sdpMid,
+				sdpMLineIndex: c.sdpMLineIndex,
+			}),
+		).catch(() => {});
 	}
-	return result;
 }
 
 export function ScreenShare() {
@@ -85,21 +70,12 @@ export function ScreenShare() {
 									}),
 								)
 								.catch(() => {});
+							flushCandidates(candidateBuffer, pc);
 						} else if (m === 'idle' && msg.type === 'offer' && !pc) {
 							setStatus('Incoming screen share detected, connecting...');
 							await startWatching(msg.sdp);
 						} else if (msg.type === 'ice-candidate') {
-							if (pc) {
-								pc.addIceCandidate(
-									new RTCIceCandidate({
-										candidate: msg.candidate,
-										sdpMid: msg.sdpMid,
-										sdpMLineIndex: msg.sdpMLineIndex,
-									}),
-								).catch(() => {});
-							} else {
-								candidateBuffer.push(msg);
-							}
+							candidateBuffer.push(msg);
 						}
 					}
 				}
@@ -154,10 +130,7 @@ export function ScreenShare() {
 			};
 
 			const offer = await pc.createOffer();
-			const sdp = enforceVP8(offer.sdp!);
-			await pc.setLocalDescription(
-				new RTCSessionDescription({ type: 'offer', sdp }),
-			);
+			await pc.setLocalDescription(offer);
 
 			pc.onicecandidate = (event) => {
 				if (!event.candidate) return;
@@ -179,7 +152,7 @@ export function ScreenShare() {
 				body: JSON.stringify({
 					type: 'offer',
 					target: 'viewer',
-					sdp,
+					sdp: pc.localDescription!.sdp,
 				}),
 			});
 			setStatus(
@@ -195,6 +168,10 @@ export function ScreenShare() {
 		try {
 			pc = new RTCPeerConnection(ICE_SERVERS);
 			pc.ontrack = (event) => {
+				console.log('Received remote track:', event.streams[0]);
+				event.streams[0].getVideoTracks().forEach((t) => {
+					console.log('remote track:', t.kind, t.enabled, t.readyState);
+				});
 				setRemoteStream(event.streams[0]);
 				setStatus('Receiving stream!');
 			};
@@ -215,18 +192,13 @@ export function ScreenShare() {
 			await pc.setRemoteDescription(
 				new RTCSessionDescription({ type: 'offer', sdp: offerSdp }),
 			);
+
+			flushCandidates(candidateBuffer, pc);
+
 			const answer = await pc.createAnswer();
 			await pc.setLocalDescription(answer);
 
-			candidateBuffer.splice(0).forEach((c) => {
-				pc?.addIceCandidate(
-					new RTCIceCandidate({
-						candidate: c.candidate,
-						sdpMid: c.sdpMid,
-						sdpMLineIndex: c.sdpMLineIndex,
-					}),
-				).catch(() => {});
-			});
+			flushCandidates(candidateBuffer, pc);
 
 			setMode('watching');
 			await fetch(API_PATH, {
@@ -299,9 +271,10 @@ export function ScreenShare() {
 					<div>
 						<p class="text-sm font-medium mb-2 text-gray-700">Remote Screen</p>
 						<video
-							ref={remoteVideo!}
+							ref={remoteVideo}
 							autoplay
 							playsinline
+							muted
 							class="w-full rounded-lg border bg-black"
 						/>
 					</div>
