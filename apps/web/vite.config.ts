@@ -4,15 +4,15 @@ import { devtools } from '@tanstack/devtools-vite';
 import { tanstackStart } from '@tanstack/solid-start/plugin/vite';
 import { nitro } from 'nitro/vite';
 import { defineConfig } from 'vite';
-import solidPlugin from 'vite-plugin-solid';
 import { VitePWA } from 'vite-plugin-pwa';
+import solidPlugin from 'vite-plugin-solid';
 
 export default defineConfig({
 	resolve: {
 		tsconfigPaths: true,
 	},
 	plugins: [
-		devtools({ removeDevtoolsOnBuild: false }),
+		devtools(),
 		paraglideVitePlugin({
 			project: '../../packages/shared/i18n/project.inlang',
 			outdir: '../../packages/shared/i18n/paraglide',
@@ -52,9 +52,6 @@ export default defineConfig({
 		}),
 	],
 	ssr: {
-		noExternal: [
-			'solid-sonner',
-			'solid-js',
-		],
+		noExternal: ['solid-sonner', 'solid-js', '@kobalte/core'],
 	},
 });

@@ -76,7 +76,6 @@ function RootComponent() {
 			<body>
 				<Suspense>
 					<ThemeProvider>
-						<Header />
 						<Outlet />
 					</ThemeProvider>
 					<Devtools />
@@ -96,7 +95,7 @@ function RootComponent() {
 					/> */}
 				</Suspense>
 				<Scripts />
-			<PwaRegister />
+				<PwaRegister />
 			</body>
 		</html>
 	);

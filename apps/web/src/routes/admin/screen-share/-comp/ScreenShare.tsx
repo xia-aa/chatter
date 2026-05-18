@@ -1,3 +1,4 @@
+import { Button } from '@repo/ui/base/button';
 import { createEffect, createSignal, onCleanup, Show } from 'solid-js';
 
 const API_PATH = '/demo/screen-share/signal';
@@ -220,12 +221,9 @@ export default function ScreenShare() {
 					</p>
 				</Show>
 				<Show when={mode() !== 'idle'}>
-					<button
-						onClick={cleanup}
-						class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
-					>
+					<Button onClick={cleanup} variant="outline">
 						Stop
-					</button>
+					</Button>
 				</Show>
 			</div>
 

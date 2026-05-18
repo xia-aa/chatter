@@ -133,7 +133,7 @@ const listMessages = (request: Request) => {
 	});
 };
 
-export const Route = createFileRoute('/demo/sse/chat-api')({
+export const Route = createFileRoute('/admin/sse/chat-api')({
 	server: {
 		handlers: {
 			GET: ({ request }) => listMessages(request),

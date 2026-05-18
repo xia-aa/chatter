@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/solid-router';
-import ChatArea from '#/routes/demo/sse/-comp/chat-area.tsx';
+import ChatArea from '#/routes/admin/sse/-comp/chat-area.tsx';
 
-export const Route = createFileRoute('/demo/sse/')({
+export const Route = createFileRoute('/admin/sse/')({
 	component: RouteComponent,
 	ssr: 'data-only',
 });

@@ -57,7 +57,7 @@ const handleSSE = (request: Request) => {
 	});
 };
 
-export const Route = createFileRoute('/demo/screen-share/signal')({
+export const Route = createFileRoute('/admin/screen-share/signal')({
 	server: {
 		handlers: {
 			GET: ({ request }) => handleSSE(request),

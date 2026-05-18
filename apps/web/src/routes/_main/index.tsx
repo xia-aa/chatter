@@ -1,7 +1,7 @@
 import { debugSsr } from '@repo/shared/lib/utils/env';
 import { createFileRoute } from '@tanstack/solid-router';
 
-export const Route = createFileRoute('/')({ component: App });
+export const Route = createFileRoute('/_main/')({ component: App });
 
 function App() {
 	debugSsr();

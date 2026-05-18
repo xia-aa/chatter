@@ -1,5 +1,5 @@
 import { createSignal } from 'solid-js';
-import { useChat, useMessages } from '#/routes/demo/sse/-comp/useChat.ts';
+import { useChat, useMessages } from '#/routes/admin/sse/-comp/useChat.ts';
 import Messages from './messages';
 
 export default function ChatArea() {

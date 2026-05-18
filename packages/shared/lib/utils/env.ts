@@ -1,2 +1,2 @@
 
-export const debugSsr = () => console.log(`Running on ${typeof window === 'undefined' ? 'server' : 'client'}`);
+export const debugSsr = (...data: any[]) => console.log(`Running on ${typeof window === 'undefined' ? 'server' : 'client'}`, ...data);

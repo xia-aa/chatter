@@ -1,6 +1,7 @@
 import { clientEnv } from '@repo/shared/env/env._client';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { admin } from 'better-auth/plugins/admin';
 import { tanstackStartCookies } from 'better-auth/tanstack-start';
 import * as schema from '#/db/schema.ts';
 import { db } from '#/db/server.ts';
@@ -36,7 +37,7 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 	},
-	plugins: [tanstackStartCookies()],
+	plugins: [tanstackStartCookies(), admin()],
 });
 export type AuthUser = typeof auth.$Infer.Session.user & { username: string };
 export type AuthSession = {
