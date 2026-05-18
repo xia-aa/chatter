@@ -52,6 +52,7 @@ export function ScreenShare() {
 						if (cancelled || sseCancelled) break;
 
 						const [msg] = to(() => JSON.parse(line));
+						console.log('Received SSE message:', msg);
 						const m = mode();
 						if (m === 'sharing' && msg.type === 'answer' && offerSent) {
 							try {
@@ -103,6 +104,7 @@ export function ScreenShare() {
 	async function startBroadcasting() {
 		try {
 			setStatus('Requesting screen capture...');
+			console.log('Requesting screen capture...');
 			const stream = await navigator.mediaDevices.getDisplayMedia({
 				video: true,
 			});

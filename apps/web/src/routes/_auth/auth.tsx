@@ -29,10 +29,12 @@ function AuthUi() {
 	const session = useQuery(() => sessionQuery);
 	const callbackURL = Route.useSearch({ select: (s) => s.callbackURL });
 	const navigate = Route.useNavigate();
-	const onSuccess = () =>
+	const onSuccess = () => {
 		navigate({
 			to: callbackURL() || '/',
 		});
+		session.refetch();
+	};
 	if (session.isPending)
 		return (
 			<div class="flex items-center justify-center py-10">
