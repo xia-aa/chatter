@@ -22,7 +22,7 @@ function flushCandidates(buffer: any[], pc: RTCPeerConnection | undefined) {
 	}
 }
 
-export function ScreenShare() {
+export const ScreenShare = () => {
 	const [mode, setMode] = createSignal<'idle' | 'sharing' | 'watching'>('idle');
 	const [localStream, setLocalStream] = createSignal<MediaStream | null>(null);
 	const [remoteStream, setRemoteStream] = createSignal<MediaStream | null>(
@@ -301,4 +301,4 @@ export function ScreenShare() {
 			</div>
 		</div>
 	);
-}
+};
