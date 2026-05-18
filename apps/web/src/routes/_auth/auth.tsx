@@ -30,10 +30,10 @@ function AuthUi() {
 	const callbackURL = Route.useSearch({ select: (s) => s.callbackURL });
 	const navigate = Route.useNavigate();
 	const onSuccess = () => {
+		session.refetch();
 		navigate({
 			to: callbackURL() || '/',
 		});
-		session.refetch();
 	};
 	if (session.isPending)
 		return (

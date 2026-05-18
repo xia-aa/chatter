@@ -1,13 +1,31 @@
 import { createFileRoute } from '@tanstack/solid-router';
 
-interface SignalMessage {
-	type: 'signal';
+interface OfferMessage {
+	type: 'offer';
 	target: 'sharer' | 'viewer';
-	data: any;
+	sdp: string;
 }
 
-let pendingViewerSignal: any = null;
-let pendingSharerSignal: any = null;
+interface AnswerMessage {
+	type: 'answer';
+	target: 'sharer' | 'viewer';
+	sdp: string;
+}
+
+interface IceCandidateMessage {
+	type: 'ice-candidate';
+	target: 'sharer' | 'viewer';
+	candidate: string;
+	sdpMid: string | null;
+	sdpMLineIndex: number | null;
+}
+
+type SignalMessage = OfferMessage | AnswerMessage | IceCandidateMessage;
+
+const pending: { viewer: SignalMessage[]; sharer: SignalMessage[] } = {
+	viewer: [],
+	sharer: [],
+};
 const controllers = new Set<ReadableStreamDefaultController>();
 const encoder = new TextEncoder();
 
@@ -21,29 +39,29 @@ function broadcast(msg: SignalMessage) {
 	}
 }
 
+function flushPending(
+	controller: ReadableStreamDefaultController,
+	target: 'viewer' | 'sharer',
+) {
+	for (const msg of pending[target]) {
+		controller.enqueue(encoder.encode(`${JSON.stringify(msg)}\n`));
+	}
+	pending[target] = [];
+}
+
 const handleSSE = (request: Request) => {
 	const stream = new ReadableStream({
 		start(controller) {
-			if (pendingViewerSignal) {
-				controller.enqueue(
-					encoder.encode(
-						`${JSON.stringify({ type: 'signal', target: 'viewer', data: pendingViewerSignal })}\n`,
-					),
-				);
-			}
-			if (pendingSharerSignal) {
-				controller.enqueue(
-					encoder.encode(
-						`${JSON.stringify({ type: 'signal', target: 'sharer', data: pendingSharerSignal })}\n`,
-					),
-				);
-			}
+			flushPending(controller, 'viewer');
+			flushPending(controller, 'sharer');
 
 			controllers.add(controller);
 
 			request.signal.addEventListener('abort', () => {
 				controllers.delete(controller);
-				try { controller.close(); } catch {}
+				try {
+					controller.close();
+				} catch {}
 			});
 		},
 		cancel() {},
@@ -64,16 +82,17 @@ export const Route = createFileRoute('/admin/screen-share/signal')({
 			GET: ({ request }) => handleSSE(request),
 			POST: async ({ request }) => {
 				const body = (await request.json()) as SignalMessage;
-				if (body.type !== 'signal' || !body.target) {
+				if (
+					!body.type ||
+					!body.target ||
+					(body.type !== 'offer' &&
+						body.type !== 'answer' &&
+						body.type !== 'ice-candidate')
+				) {
 					return new Response('Invalid signal', { status: 400 });
 				}
 
-				if (body.target === 'viewer') {
-					pendingViewerSignal = body.data;
-				} else if (body.target === 'sharer') {
-					pendingSharerSignal = body.data;
-				}
-
+				pending[body.target].push(body);
 				broadcast(body);
 				return Response.json({ ok: true });
 			},

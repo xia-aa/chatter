@@ -1,9 +1,41 @@
 import { to } from '@repo/shared/lib/utils/fp.ts';
 import { Button } from '@repo/ui/base/button';
-import SimplePeer from 'simple-peer';
 import { createEffect, createSignal, onCleanup, Show } from 'solid-js';
 
 const API_PATH = '/admin/screen-share/signal';
+const ICE_SERVERS = {
+	iceServers: [
+		{ urls: 'stun:stun.l.google.com:19302' },
+		{ urls: 'stun:stun1.l.google.com:19302' },
+	],
+};
+
+function enforceVP8(sdp: string): string {
+	const videoMatch = sdp.match(/^m=video\s+\d+\s+[\w/]+\s+(.+)$/m);
+	if (!videoMatch) return sdp;
+
+	const allPTs = videoMatch[1].trim().split(/\s+/);
+
+	const h264PTs = allPTs.filter((pt) => {
+		const m = sdp.match(new RegExp(`^a=rtpmap:${pt}\\s+H264`, 'm'));
+		return !!m;
+	});
+	if (!h264PTs.length) return sdp;
+
+	const filteredPTs = allPTs.filter((pt) => !h264PTs.includes(pt));
+	let result = sdp.replace(
+		videoMatch[0],
+		videoMatch[0].replace(allPTs.join(' '), filteredPTs.join(' ')),
+	);
+	for (const pt of h264PTs) {
+		result = result.replace(
+			new RegExp(`^a=rtpmap:${pt}\\s+H264\\/[\\d]+$`, 'm'),
+			'',
+		);
+		result = result.replace(new RegExp(`^a=fmtp:${pt}[^\\n]*$`, 'm'), '');
+	}
+	return result;
+}
 
 export function ScreenShare() {
 	const [mode, setMode] = createSignal<'idle' | 'sharing' | 'watching'>('idle');
@@ -15,13 +47,13 @@ export function ScreenShare() {
 		'Open this page in two tabs — share in one, watch in the other',
 	);
 
-	let peer: InstanceType<typeof SimplePeer> | undefined;
+	let pc: RTCPeerConnection | undefined;
 	let localVideo: HTMLVideoElement | undefined;
 	let remoteVideo: HTMLVideoElement | undefined;
 	let sseReader: ReadableStreamDefaultReader | undefined;
 	let sseCancelled = false;
+	const candidateBuffer: any[] = [];
 
-	// Connect SSE on mount — both tabs listen for signals
 	createEffect(() => {
 		let cancelled = false;
 		sseCancelled = false;
@@ -43,14 +75,31 @@ export function ScreenShare() {
 						if (cancelled || sseCancelled) break;
 
 						const [msg] = to(() => JSON.parse(line));
-						if (!msg || msg.type !== 'signal') continue;
-
 						const m = mode();
-						if (m === 'sharing' && msg.target === 'sharer' && peer) {
-							peer.signal(msg.data);
-						} else if (m === 'idle' && msg.target === 'viewer' && !peer) {
+						if (m === 'sharing' && msg.type === 'answer' && pc) {
+							await pc
+								.setRemoteDescription(
+									new RTCSessionDescription({
+										type: 'answer',
+										sdp: msg.sdp,
+									}),
+								)
+								.catch(() => {});
+						} else if (m === 'idle' && msg.type === 'offer' && !pc) {
 							setStatus('Incoming screen share detected, connecting...');
-							await startWatching(msg.data);
+							await startWatching(msg.sdp);
+						} else if (msg.type === 'ice-candidate') {
+							if (pc) {
+								pc.addIceCandidate(
+									new RTCIceCandidate({
+										candidate: msg.candidate,
+										sdpMid: msg.sdpMid,
+										sdpMLineIndex: msg.sdpMLineIndex,
+									}),
+								).catch(() => {});
+							} else {
+								candidateBuffer.push(msg);
+							}
 						}
 					}
 				}
@@ -77,8 +126,9 @@ export function ScreenShare() {
 			.forEach((t) => {
 				t.stop();
 			});
-		peer?.destroy();
-		peer = undefined;
+		pc?.close();
+		pc = undefined;
+		candidateBuffer.length = 0;
 		setLocalStream(null);
 		setRemoteStream(null);
 		setMode('idle');
@@ -94,24 +144,44 @@ export function ScreenShare() {
 			setLocalStream(stream);
 			stream.getVideoTracks()[0].addEventListener('ended', cleanup);
 
-			setStatus('Creating connection...');
-			peer = new SimplePeer({
-				initiator: true,
-				stream,
-				trickle: false,
+			setStatus('Creating peer connection...');
+			pc = new RTCPeerConnection(ICE_SERVERS);
+			stream.getTracks().forEach((track) => {
+				pc!.addTrack(track, stream);
 			});
-			peer.on('signal', (data) => {
+			pc.ontrack = (event) => {
+				setRemoteStream(event.streams[0]);
+			};
+
+			const offer = await pc.createOffer();
+			const sdp = enforceVP8(offer.sdp!);
+			await pc.setLocalDescription(
+				new RTCSessionDescription({ type: 'offer', sdp }),
+			);
+
+			pc.onicecandidate = (event) => {
+				if (!event.candidate) return;
 				fetch(API_PATH, {
 					method: 'POST',
-					body: JSON.stringify({ type: 'signal', target: 'viewer', data }),
+					body: JSON.stringify({
+						type: 'ice-candidate',
+						target: 'viewer',
+						candidate: event.candidate.candidate,
+						sdpMid: event.candidate.sdpMid,
+						sdpMLineIndex: event.candidate.sdpMLineIndex,
+					}),
 				});
-			});
-			peer.on('error', (err) => {
-				console.error('Peer error:', err);
-				cleanup();
-			});
+			};
 
 			setMode('sharing');
+			await fetch(API_PATH, {
+				method: 'POST',
+				body: JSON.stringify({
+					type: 'offer',
+					target: 'viewer',
+					sdp,
+				}),
+			});
 			setStatus(
 				'Broadcasting — waiting for viewer to connect in another tab...',
 			);
@@ -121,26 +191,52 @@ export function ScreenShare() {
 		}
 	}
 
-	async function startWatching(offerData: any) {
+	async function startWatching(offerSdp: string) {
 		try {
-			peer = new SimplePeer({ initiator: false, trickle: false });
-			peer.on('signal', (data) => {
+			pc = new RTCPeerConnection(ICE_SERVERS);
+			pc.ontrack = (event) => {
+				setRemoteStream(event.streams[0]);
+				setStatus('Receiving stream!');
+			};
+			pc.onicecandidate = (event) => {
+				if (!event.candidate) return;
 				fetch(API_PATH, {
 					method: 'POST',
-					body: JSON.stringify({ type: 'signal', target: 'sharer', data }),
+					body: JSON.stringify({
+						type: 'ice-candidate',
+						target: 'sharer',
+						candidate: event.candidate.candidate,
+						sdpMid: event.candidate.sdpMid,
+						sdpMLineIndex: event.candidate.sdpMLineIndex,
+					}),
 				});
-			});
-			peer.on('stream', (stream) => {
-				setRemoteStream(stream);
-				setStatus('Receiving stream!');
-			});
-			peer.on('error', (err) => {
-				console.error('Peer error:', err);
-				cleanup();
+			};
+
+			await pc.setRemoteDescription(
+				new RTCSessionDescription({ type: 'offer', sdp: offerSdp }),
+			);
+			const answer = await pc.createAnswer();
+			await pc.setLocalDescription(answer);
+
+			candidateBuffer.splice(0).forEach((c) => {
+				pc?.addIceCandidate(
+					new RTCIceCandidate({
+						candidate: c.candidate,
+						sdpMid: c.sdpMid,
+						sdpMLineIndex: c.sdpMLineIndex,
+					}),
+				).catch(() => {});
 			});
 
-			peer.signal(offerData);
 			setMode('watching');
+			await fetch(API_PATH, {
+				method: 'POST',
+				body: JSON.stringify({
+					type: 'answer',
+					target: 'sharer',
+					sdp: pc.localDescription?.sdp,
+				}),
+			});
 			setStatus('Connected! Watching shared screen.');
 		} catch (err) {
 			setStatus(`Error: ${err}`);

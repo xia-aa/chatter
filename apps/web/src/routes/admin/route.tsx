@@ -10,7 +10,8 @@ import { AdminSidebar } from '#/routes/admin/-comp/AppSidebar.tsx';
 // import { AdminSidebar } from '#/routes/admin/-components/layout/sidebar';
 
 export const Route = createFileRoute('/admin')({
-	loader: async ({ context: { user } }) => adminBeforeLoad(user),
+	loader: async ({ context: { user }, location }) =>
+		adminBeforeLoad(user, location.pathname),
 	component: RouteComponent,
 });
 
