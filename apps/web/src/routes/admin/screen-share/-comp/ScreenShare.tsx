@@ -1,14 +1,9 @@
 import { to } from '@repo/shared/lib/utils/fp.ts';
 import { Button } from '@repo/ui/base/button';
+import SimplePeer from 'simple-peer';
 import { createEffect, createSignal, onCleanup, Show } from 'solid-js';
 
 const API_PATH = '/admin/screen-share/signal';
-const ICE_SERVERS = {
-	iceServers: [
-		{ urls: 'stun:stun.l.google.com:19302' },
-		{ urls: 'stun:stun1.l.google.com:19302' },
-	],
-};
 
 export function ScreenShare() {
 	const [mode, setMode] = createSignal<'idle' | 'sharing' | 'watching'>('idle');
@@ -20,15 +15,11 @@ export function ScreenShare() {
 		'Open this page in two tabs — share in one, watch in the other',
 	);
 
-	let pc: RTCPeerConnection | undefined;
+	let peer: InstanceType<typeof SimplePeer> | undefined;
 	let localVideo: HTMLVideoElement | undefined;
 	let remoteVideo: HTMLVideoElement | undefined;
 	let sseReader: ReadableStreamDefaultReader | undefined;
 	let sseCancelled = false;
-	let offerSent = false;
-
-	// SSR guard
-	if (typeof window === 'undefined') return null;
 
 	// Connect SSE on mount — both tabs listen for signals
 	createEffect(() => {
@@ -52,20 +43,14 @@ export function ScreenShare() {
 						if (cancelled || sseCancelled) break;
 
 						const [msg] = to(() => JSON.parse(line));
-						console.log('Received SSE message:', msg);
+						if (!msg || msg.type !== 'signal') continue;
+
 						const m = mode();
-						if (m === 'sharing' && msg.type === 'answer' && offerSent) {
-							try {
-								await pc?.setRemoteDescription(
-									new RTCSessionDescription({ type: 'answer', sdp: msg.sdp }),
-								);
-								setStatus('Connected! Screen is being viewed');
-							} catch {
-								// Stale answer from previous session — ignore
-							}
-						} else if (m === 'idle' && msg.type === 'offer' && !pc) {
+						if (m === 'sharing' && msg.target === 'sharer' && peer) {
+							peer.signal(msg.data);
+						} else if (m === 'idle' && msg.target === 'viewer' && !peer) {
 							setStatus('Incoming screen share detected, connecting...');
-							startWatching(msg.sdp);
+							await startWatching(msg.data);
 						}
 					}
 				}
@@ -92,9 +77,8 @@ export function ScreenShare() {
 			.forEach((t) => {
 				t.stop();
 			});
-		pc?.close();
-		pc = undefined;
-		offerSent = false;
+		peer?.destroy();
+		peer = undefined;
 		setLocalStream(null);
 		setRemoteStream(null);
 		setMode('idle');
@@ -104,46 +88,30 @@ export function ScreenShare() {
 	async function startBroadcasting() {
 		try {
 			setStatus('Requesting screen capture...');
-			console.log('Requesting screen capture...');
 			const stream = await navigator.mediaDevices.getDisplayMedia({
 				video: true,
 			});
 			setLocalStream(stream);
 			stream.getVideoTracks()[0].addEventListener('ended', cleanup);
 
-			setStatus('Creating peer connection...');
-			pc = new RTCPeerConnection(ICE_SERVERS);
-			stream.getTracks().forEach((track) => {
-				pc!.addTrack(track, stream);
+			setStatus('Creating connection...');
+			peer = new SimplePeer({
+				initiator: true,
+				stream,
+				trickle: false,
 			});
-			pc.ontrack = (event) => {
-				setRemoteStream(event.streams[0]);
-			};
-
-			const offer = await pc.createOffer();
-			await pc.setLocalDescription(offer);
-
-			if (pc.iceGatheringState !== 'complete') {
-				await new Promise<void>((resolve) => {
-					pc!.addEventListener('icegatheringstatechange', () => {
-						if (pc!.iceGatheringState === 'complete') resolve();
-					});
+			peer.on('signal', (data) => {
+				fetch(API_PATH, {
+					method: 'POST',
+					body: JSON.stringify({ type: 'signal', target: 'viewer', data }),
 				});
-			}
+			});
+			peer.on('error', (err) => {
+				console.error('Peer error:', err);
+				cleanup();
+			});
 
 			setMode('sharing');
-
-			setStatus('Sending offer...');
-			await fetch(API_PATH, {
-				method: 'POST',
-				body: JSON.stringify({
-					type: 'offer',
-					target: 'viewer',
-					sdp: pc.localDescription?.sdp,
-				}),
-			});
-			offerSent = true;
-
 			setStatus(
 				'Broadcasting — waiting for viewer to connect in another tab...',
 			);
@@ -153,39 +121,26 @@ export function ScreenShare() {
 		}
 	}
 
-	async function startWatching(offerSdp: string) {
+	async function startWatching(offerData: any) {
 		try {
-			pc = new RTCPeerConnection(ICE_SERVERS);
-			pc.ontrack = (event) => {
-				setRemoteStream(event.streams[0]);
-				setStatus('Receiving stream!');
-			};
-
-			await pc.setRemoteDescription(
-				new RTCSessionDescription({ type: 'offer', sdp: offerSdp }),
-			);
-			const answer = await pc.createAnswer();
-			await pc.setLocalDescription(answer);
-
-			if (pc.iceGatheringState !== 'complete') {
-				await new Promise<void>((resolve) => {
-					pc!.addEventListener('icegatheringstatechange', () => {
-						if (pc!.iceGatheringState === 'complete') resolve();
-					});
+			peer = new SimplePeer({ initiator: false, trickle: false });
+			peer.on('signal', (data) => {
+				fetch(API_PATH, {
+					method: 'POST',
+					body: JSON.stringify({ type: 'signal', target: 'sharer', data }),
 				});
-			}
-
-			setMode('watching');
-			setStatus('Sending answer...');
-			await fetch(API_PATH, {
-				method: 'POST',
-				body: JSON.stringify({
-					type: 'answer',
-					target: 'sharer',
-					sdp: pc.localDescription?.sdp,
-				}),
+			});
+			peer.on('stream', (stream) => {
+				setRemoteStream(stream);
+				setStatus('Receiving stream!');
+			});
+			peer.on('error', (err) => {
+				console.error('Peer error:', err);
+				cleanup();
 			});
 
+			peer.signal(offerData);
+			setMode('watching');
 			setStatus('Connected! Watching shared screen.');
 		} catch (err) {
 			setStatus(`Error: ${err}`);

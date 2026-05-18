@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/solid-router';
+import { ClientOnly, createFileRoute } from '@tanstack/solid-router';
 import { ScreenShare } from '#/routes/admin/screen-share/-comp/ScreenShare.tsx';
 import { ChatArea } from '#/routes/admin/sse/-comp/chat-area.tsx';
 
@@ -10,8 +10,10 @@ export const Route = createFileRoute('/admin/sse/')({
 function RouteComponent() {
 	return (
 		<main class="flex gap-2">
-			<ChatArea />
-			<ScreenShare />
+			<ClientOnly>
+				<ChatArea />
+				<ScreenShare />
+			</ClientOnly>
 		</main>
 	);
 }

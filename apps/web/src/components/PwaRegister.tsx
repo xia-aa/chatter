@@ -6,6 +6,7 @@ export default function PwaRegister() {
 	createEffect(() => {
 		if (!hydrated()) return
 		if (!('serviceWorker' in navigator)) return
+		if (!import.meta.env.PROD) return
 		const regPromise = navigator.serviceWorker.register('/sw.js')
 		onCleanup(() => {
 			regPromise.then((reg) => reg.unregister())

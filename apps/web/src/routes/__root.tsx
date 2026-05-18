@@ -23,7 +23,6 @@ import type { QueryClient } from '@tanstack/query-core';
 import { Suspense } from 'solid-js';
 import { HydrationScript } from 'solid-js/web';
 import { sessionQuery } from '#/lib/auth/auth.query.ts';
-import Header from '../components/Header';
 import PwaRegister from '../components/PwaRegister';
 
 interface MyRouterContext {
@@ -57,7 +56,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 		],
 		meta: [
 			{ name: 'theme-color', content: '#B0E0E6' },
-			{ name: 'apple-mobile-web-app-capable', content: 'yes' },
+			{ name: 'mobile-web-app-capable', content: 'yes' },
 			{ name: 'apple-mobile-web-app-status-bar-style', content: 'black' },
 		],
 		scripts: [{ children: themeScript }],

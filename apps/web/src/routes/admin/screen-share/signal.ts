@@ -1,13 +1,13 @@
 import { createFileRoute } from '@tanstack/solid-router';
 
 interface SignalMessage {
-	type: 'offer' | 'answer';
-	sdp: string;
+	type: 'signal';
 	target: 'sharer' | 'viewer';
+	data: any;
 }
 
-let latestOffer: SignalMessage | null = null;
-let latestAnswer: SignalMessage | null = null;
+let pendingViewerSignal: any = null;
+let pendingSharerSignal: any = null;
 const controllers = new Set<ReadableStreamDefaultController>();
 const encoder = new TextEncoder();
 
@@ -24,15 +24,18 @@ function broadcast(msg: SignalMessage) {
 const handleSSE = (request: Request) => {
 	const stream = new ReadableStream({
 		start(controller) {
-			// Send any existing signals immediately
-			if (latestOffer) {
+			if (pendingViewerSignal) {
 				controller.enqueue(
-					encoder.encode(`${JSON.stringify(latestOffer)}\n`),
+					encoder.encode(
+						`${JSON.stringify({ type: 'signal', target: 'viewer', data: pendingViewerSignal })}\n`,
+					),
 				);
 			}
-			if (latestAnswer) {
+			if (pendingSharerSignal) {
 				controller.enqueue(
-					encoder.encode(`${JSON.stringify(latestAnswer)}\n`),
+					encoder.encode(
+						`${JSON.stringify({ type: 'signal', target: 'sharer', data: pendingSharerSignal })}\n`,
+					),
 				);
 			}
 
@@ -43,9 +46,7 @@ const handleSSE = (request: Request) => {
 				try { controller.close(); } catch {}
 			});
 		},
-		cancel() {
-			// Controller is cleaned up via abort or iteration error
-		},
+		cancel() {},
 	});
 
 	return new Response(stream, {
@@ -63,15 +64,14 @@ export const Route = createFileRoute('/admin/screen-share/signal')({
 			GET: ({ request }) => handleSSE(request),
 			POST: async ({ request }) => {
 				const body = (await request.json()) as SignalMessage;
-				if (!body.type || !body.sdp || !body.target) {
+				if (body.type !== 'signal' || !body.target) {
 					return new Response('Invalid signal', { status: 400 });
 				}
 
-				if (body.type === 'offer') {
-					latestOffer = body;
-					latestAnswer = null; // Clear stale answer from previous session
-				} else if (body.type === 'answer') {
-					latestAnswer = body;
+				if (body.target === 'viewer') {
+					pendingViewerSignal = body.data;
+				} else if (body.target === 'sharer') {
+					pendingSharerSignal = body.data;
 				}
 
 				broadcast(body);

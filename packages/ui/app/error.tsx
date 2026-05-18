@@ -11,7 +11,7 @@ export function ErrorCard({error, info, reset}: ErrorComponentProps) {
     strict: false,
     select: (state) => state.id === rootRouteId,
   })
-	  console.error(error)
+	console.log(error)
 	const navigate = useNavigate()
 	return (
 		<div class={'grid place-items-center  w-full h-full my-auto'}>

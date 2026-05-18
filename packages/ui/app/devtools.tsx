@@ -6,7 +6,8 @@ import { isServer } from "solid-js/web";
 
 export const Devtools =  !isServer ? lazy(() => 
   import('@tanstack/solid-devtools').then(
-    ({ TanStackDevtools }) => ({default: () => <TanStackDevtools 					plugins={[
+    ({ TanStackDevtools }) => ({default: () => <TanStackDevtools 					
+			plugins={[
 							{
 								name: 'Tanstack Router',
 								render: <TanStackRouterDevtoolsPanel />,

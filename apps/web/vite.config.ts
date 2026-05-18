@@ -8,8 +8,8 @@ import { VitePWA } from 'vite-plugin-pwa';
 import solidPlugin from 'vite-plugin-solid';
 
 export default defineConfig({
-	resolve: {
-		tsconfigPaths: true,
+	define: {
+		global: 'globalThis',
 	},
 	plugins: [
 		devtools(),
