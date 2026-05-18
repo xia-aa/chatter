@@ -18,7 +18,7 @@ export default defineConfig({
 		tailwindcss(),
 		tanstackStart(),
 		solidPlugin({ ssr: true }),
-		nitro(),
+		nitro({ preset: 'vercel' }),
 		VitePWA({
 			registerType: 'autoUpdate',
 			injectRegister: false,
