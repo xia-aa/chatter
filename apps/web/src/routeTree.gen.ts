@@ -18,7 +18,9 @@ import { Route as DemoSolidRouteImport } from './routes/demo/solid'
 import { Route as DemoFormRouteImport } from './routes/demo.form'
 import { Route as AuthAuthRouteImport } from './routes/_auth/auth'
 import { Route as DemoSseIndexRouteImport } from './routes/demo/sse/index'
+import { Route as DemoScreenShareIndexRouteImport } from './routes/demo/screen-share/index'
 import { Route as DemoSseChatApiRouteImport } from './routes/demo/sse/chat-api'
+import { Route as DemoScreenShareSignalRouteImport } from './routes/demo/screen-share/signal'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const AboutRoute = AboutRouteImport.update({
@@ -65,9 +67,19 @@ const DemoSseIndexRoute = DemoSseIndexRouteImport.update({
   path: '/demo/sse/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DemoScreenShareIndexRoute = DemoScreenShareIndexRouteImport.update({
+  id: '/demo/screen-share/',
+  path: '/demo/screen-share/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemoSseChatApiRoute = DemoSseChatApiRouteImport.update({
   id: '/demo/sse/chat-api',
   path: '/demo/sse/chat-api',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoScreenShareSignalRoute = DemoScreenShareSignalRouteImport.update({
+  id: '/demo/screen-share/signal',
+  path: '/demo/screen-share/signal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -85,7 +97,9 @@ export interface FileRoutesByFullPath {
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/demo/screen-share/signal': typeof DemoScreenShareSignalRoute
   '/demo/sse/chat-api': typeof DemoSseChatApiRoute
+  '/demo/screen-share/': typeof DemoScreenShareIndexRoute
   '/demo/sse/': typeof DemoSseIndexRoute
 }
 export interface FileRoutesByTo {
@@ -97,7 +111,9 @@ export interface FileRoutesByTo {
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/demo/screen-share/signal': typeof DemoScreenShareSignalRoute
   '/demo/sse/chat-api': typeof DemoSseChatApiRoute
+  '/demo/screen-share': typeof DemoScreenShareIndexRoute
   '/demo/sse': typeof DemoSseIndexRoute
 }
 export interface FileRoutesById {
@@ -111,7 +127,9 @@ export interface FileRoutesById {
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/demo/screen-share/signal': typeof DemoScreenShareSignalRoute
   '/demo/sse/chat-api': typeof DemoSseChatApiRoute
+  '/demo/screen-share/': typeof DemoScreenShareIndexRoute
   '/demo/sse/': typeof DemoSseIndexRoute
 }
 export interface FileRouteTypes {
@@ -125,7 +143,9 @@ export interface FileRouteTypes {
     | '/demo/store'
     | '/demo/tanstack-query'
     | '/api/auth/$'
+    | '/demo/screen-share/signal'
     | '/demo/sse/chat-api'
+    | '/demo/screen-share/'
     | '/demo/sse/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -137,7 +157,9 @@ export interface FileRouteTypes {
     | '/demo/store'
     | '/demo/tanstack-query'
     | '/api/auth/$'
+    | '/demo/screen-share/signal'
     | '/demo/sse/chat-api'
+    | '/demo/screen-share'
     | '/demo/sse'
   id:
     | '__root__'
@@ -150,7 +172,9 @@ export interface FileRouteTypes {
     | '/demo/store'
     | '/demo/tanstack-query'
     | '/api/auth/$'
+    | '/demo/screen-share/signal'
     | '/demo/sse/chat-api'
+    | '/demo/screen-share/'
     | '/demo/sse/'
   fileRoutesById: FileRoutesById
 }
@@ -163,7 +187,9 @@ export interface RootRouteChildren {
   DemoStoreRoute: typeof DemoStoreRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  DemoScreenShareSignalRoute: typeof DemoScreenShareSignalRoute
   DemoSseChatApiRoute: typeof DemoSseChatApiRoute
+  DemoScreenShareIndexRoute: typeof DemoScreenShareIndexRoute
   DemoSseIndexRoute: typeof DemoSseIndexRoute
 }
 
@@ -232,11 +258,25 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof DemoSseIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/demo/screen-share/': {
+      id: '/demo/screen-share/'
+      path: '/demo/screen-share'
+      fullPath: '/demo/screen-share/'
+      preLoaderRoute: typeof DemoScreenShareIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/sse/chat-api': {
       id: '/demo/sse/chat-api'
       path: '/demo/sse/chat-api'
       fullPath: '/demo/sse/chat-api'
       preLoaderRoute: typeof DemoSseChatApiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/screen-share/signal': {
+      id: '/demo/screen-share/signal'
+      path: '/demo/screen-share/signal'
+      fullPath: '/demo/screen-share/signal'
+      preLoaderRoute: typeof DemoScreenShareSignalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -270,7 +310,9 @@ const rootRouteChildren: RootRouteChildren = {
   DemoStoreRoute: DemoStoreRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  DemoScreenShareSignalRoute: DemoScreenShareSignalRoute,
   DemoSseChatApiRoute: DemoSseChatApiRoute,
+  DemoScreenShareIndexRoute: DemoScreenShareIndexRoute,
   DemoSseIndexRoute: DemoSseIndexRoute,
 }
 export const routeTree = rootRouteImport

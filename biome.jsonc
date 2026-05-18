@@ -84,7 +84,8 @@
 				"useSemanticElements": "info",
 				"noSvgWithoutTitle": "off",
 				"useAltText": "off",
-				"noLabelWithoutControl": "off"
+				"noLabelWithoutControl": "off",
+				"useMediaCaption": "info"
 			},
 			"style": {
 				"noNonNullAssertion": "info"
