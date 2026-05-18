@@ -1,7 +1,7 @@
 import { Button } from '@repo/ui/base/button';
 import { createEffect, createSignal, onCleanup, Show } from 'solid-js';
 
-const API_PATH = '/demo/screen-share/signal';
+const API_PATH = '/admin/screen-share/signal';
 const ICE_SERVERS = {
 	iceServers: [
 		{ urls: 'stun:stun.l.google.com:19302' },

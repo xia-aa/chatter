@@ -38,8 +38,7 @@ const UserAvatar = (props: { name?: string; image?: string | null }) => {
 export default function BetterAuthHeader() {
 	const session = useQuery(() => sessionQuery);
 	// const session = authClient.useSession();
-
-	debugSsr(session.data?.user);
+	// debugSsr(session.data?.user);
 	return (
 		<Show
 			when={!session.isPending}
