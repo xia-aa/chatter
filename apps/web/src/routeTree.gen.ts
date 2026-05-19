@@ -19,12 +19,14 @@ import { Route as DemoStoreRouteImport } from './routes/demo.store'
 import { Route as DemoSolidRouteImport } from './routes/demo/solid'
 import { Route as DemoFormRouteImport } from './routes/demo/form'
 import { Route as AuthAuthRouteImport } from './routes/_auth/auth'
+import { Route as AdminV1IndexRouteImport } from './routes/admin/v1/index'
 import { Route as AdminV0IndexRouteImport } from './routes/admin/v0/index'
 import { Route as AdminSseIndexRouteImport } from './routes/admin/sse/index'
 import { Route as AdminScreenShareIndexRouteImport } from './routes/admin/screen-share/index'
 import { Route as AdminS1IndexRouteImport } from './routes/admin/s1/index'
 import { Route as AdminPubsubIndexRouteImport } from './routes/admin/pubsub/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AdminV1SignalRouteImport } from './routes/admin/v1/signal'
 import { Route as AdminV0SignalRouteImport } from './routes/admin/v0/signal'
 import { Route as AdminSseChatApiRouteImport } from './routes/admin/sse/chat-api'
 import { Route as AdminS1SignalRouteImport } from './routes/admin/s1/signal'
@@ -78,6 +80,11 @@ const AuthAuthRoute = AuthAuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AdminV1IndexRoute = AdminV1IndexRouteImport.update({
+  id: '/v1/',
+  path: '/v1/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminV0IndexRoute = AdminV0IndexRouteImport.update({
   id: '/v0/',
   path: '/v0/',
@@ -107,6 +114,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminV1SignalRoute = AdminV1SignalRouteImport.update({
+  id: '/v1/signal',
+  path: '/v1/signal',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminV0SignalRoute = AdminV0SignalRouteImport.update({
   id: '/v0/signal',
@@ -142,12 +154,14 @@ export interface FileRoutesByFullPath {
   '/admin/s1/signal': typeof AdminS1SignalRoute
   '/admin/sse/chat-api': typeof AdminSseChatApiRoute
   '/admin/v0/signal': typeof AdminV0SignalRoute
+  '/admin/v1/signal': typeof AdminV1SignalRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/pubsub/': typeof AdminPubsubIndexRoute
   '/admin/s1/': typeof AdminS1IndexRoute
   '/admin/screen-share/': typeof AdminScreenShareIndexRoute
   '/admin/sse/': typeof AdminSseIndexRoute
   '/admin/v0/': typeof AdminV0IndexRoute
+  '/admin/v1/': typeof AdminV1IndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
@@ -161,12 +175,14 @@ export interface FileRoutesByTo {
   '/admin/s1/signal': typeof AdminS1SignalRoute
   '/admin/sse/chat-api': typeof AdminSseChatApiRoute
   '/admin/v0/signal': typeof AdminV0SignalRoute
+  '/admin/v1/signal': typeof AdminV1SignalRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/pubsub': typeof AdminPubsubIndexRoute
   '/admin/s1': typeof AdminS1IndexRoute
   '/admin/screen-share': typeof AdminScreenShareIndexRoute
   '/admin/sse': typeof AdminSseIndexRoute
   '/admin/v0': typeof AdminV0IndexRoute
+  '/admin/v1': typeof AdminV1IndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -184,12 +200,14 @@ export interface FileRoutesById {
   '/admin/s1/signal': typeof AdminS1SignalRoute
   '/admin/sse/chat-api': typeof AdminSseChatApiRoute
   '/admin/v0/signal': typeof AdminV0SignalRoute
+  '/admin/v1/signal': typeof AdminV1SignalRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/pubsub/': typeof AdminPubsubIndexRoute
   '/admin/s1/': typeof AdminS1IndexRoute
   '/admin/screen-share/': typeof AdminScreenShareIndexRoute
   '/admin/sse/': typeof AdminSseIndexRoute
   '/admin/v0/': typeof AdminV0IndexRoute
+  '/admin/v1/': typeof AdminV1IndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -206,12 +224,14 @@ export interface FileRouteTypes {
     | '/admin/s1/signal'
     | '/admin/sse/chat-api'
     | '/admin/v0/signal'
+    | '/admin/v1/signal'
     | '/api/auth/$'
     | '/admin/pubsub/'
     | '/admin/s1/'
     | '/admin/screen-share/'
     | '/admin/sse/'
     | '/admin/v0/'
+    | '/admin/v1/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -225,12 +245,14 @@ export interface FileRouteTypes {
     | '/admin/s1/signal'
     | '/admin/sse/chat-api'
     | '/admin/v0/signal'
+    | '/admin/v1/signal'
     | '/api/auth/$'
     | '/admin/pubsub'
     | '/admin/s1'
     | '/admin/screen-share'
     | '/admin/sse'
     | '/admin/v0'
+    | '/admin/v1'
   id:
     | '__root__'
     | '/_auth'
@@ -247,12 +269,14 @@ export interface FileRouteTypes {
     | '/admin/s1/signal'
     | '/admin/sse/chat-api'
     | '/admin/v0/signal'
+    | '/admin/v1/signal'
     | '/api/auth/$'
     | '/admin/pubsub/'
     | '/admin/s1/'
     | '/admin/screen-share/'
     | '/admin/sse/'
     | '/admin/v0/'
+    | '/admin/v1/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -338,6 +362,13 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof AuthAuthRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/admin/v1/': {
+      id: '/admin/v1/'
+      path: '/v1'
+      fullPath: '/admin/v1/'
+      preLoaderRoute: typeof AdminV1IndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/v0/': {
       id: '/admin/v0/'
       path: '/v0'
@@ -379,6 +410,13 @@ declare module '@tanstack/solid-router' {
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/v1/signal': {
+      id: '/admin/v1/signal'
+      path: '/v1/signal'
+      fullPath: '/admin/v1/signal'
+      preLoaderRoute: typeof AdminV1SignalRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/v0/signal': {
       id: '/admin/v0/signal'
@@ -441,11 +479,13 @@ interface AdminRouteRouteChildren {
   AdminS1SignalRoute: typeof AdminS1SignalRoute
   AdminSseChatApiRoute: typeof AdminSseChatApiRoute
   AdminV0SignalRoute: typeof AdminV0SignalRoute
+  AdminV1SignalRoute: typeof AdminV1SignalRoute
   AdminPubsubIndexRoute: typeof AdminPubsubIndexRoute
   AdminS1IndexRoute: typeof AdminS1IndexRoute
   AdminScreenShareIndexRoute: typeof AdminScreenShareIndexRoute
   AdminSseIndexRoute: typeof AdminSseIndexRoute
   AdminV0IndexRoute: typeof AdminV0IndexRoute
+  AdminV1IndexRoute: typeof AdminV1IndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
@@ -454,11 +494,13 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminS1SignalRoute: AdminS1SignalRoute,
   AdminSseChatApiRoute: AdminSseChatApiRoute,
   AdminV0SignalRoute: AdminV0SignalRoute,
+  AdminV1SignalRoute: AdminV1SignalRoute,
   AdminPubsubIndexRoute: AdminPubsubIndexRoute,
   AdminS1IndexRoute: AdminS1IndexRoute,
   AdminScreenShareIndexRoute: AdminScreenShareIndexRoute,
   AdminSseIndexRoute: AdminSseIndexRoute,
   AdminV0IndexRoute: AdminV0IndexRoute,
+  AdminV1IndexRoute: AdminV1IndexRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
