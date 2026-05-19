@@ -5,6 +5,7 @@
     "#/*": "./src/*"
   },
   "scripts": {
+    "typecheck": "tsgo --noEmit",
     "dev": "vite dev --port 9005",
     "build": "vite build",
     "start": "node .output/server/index.mjs",

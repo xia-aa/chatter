@@ -17,13 +17,18 @@ import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
 import { Route as DemoStoreRouteImport } from './routes/demo.store'
 import { Route as DemoSolidRouteImport } from './routes/demo/solid'
-import { Route as DemoFormRouteImport } from './routes/demo.form'
+import { Route as DemoFormRouteImport } from './routes/demo/form'
 import { Route as AuthAuthRouteImport } from './routes/_auth/auth'
+import { Route as AdminV0IndexRouteImport } from './routes/admin/v0/index'
 import { Route as AdminSseIndexRouteImport } from './routes/admin/sse/index'
 import { Route as AdminScreenShareIndexRouteImport } from './routes/admin/screen-share/index'
+import { Route as AdminS1IndexRouteImport } from './routes/admin/s1/index'
+import { Route as AdminPubsubIndexRouteImport } from './routes/admin/pubsub/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AdminV0SignalRouteImport } from './routes/admin/v0/signal'
 import { Route as AdminSseChatApiRouteImport } from './routes/admin/sse/chat-api'
-import { Route as AdminScreenShareSignalRouteImport } from './routes/admin/screen-share/signal'
+import { Route as AdminS1SignalRouteImport } from './routes/admin/s1/signal'
+import { Route as AdminPubsubApiRouteImport } from './routes/admin/pubsub/api'
 
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
@@ -73,6 +78,11 @@ const AuthAuthRoute = AuthAuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AdminV0IndexRoute = AdminV0IndexRouteImport.update({
+  id: '/v0/',
+  path: '/v0/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminSseIndexRoute = AdminSseIndexRouteImport.update({
   id: '/sse/',
   path: '/sse/',
@@ -83,19 +93,39 @@ const AdminScreenShareIndexRoute = AdminScreenShareIndexRouteImport.update({
   path: '/screen-share/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminS1IndexRoute = AdminS1IndexRouteImport.update({
+  id: '/s1/',
+  path: '/s1/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminPubsubIndexRoute = AdminPubsubIndexRouteImport.update({
+  id: '/pubsub/',
+  path: '/pubsub/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminV0SignalRoute = AdminV0SignalRouteImport.update({
+  id: '/v0/signal',
+  path: '/v0/signal',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminSseChatApiRoute = AdminSseChatApiRouteImport.update({
   id: '/sse/chat-api',
   path: '/sse/chat-api',
   getParentRoute: () => AdminRouteRoute,
 } as any)
-const AdminScreenShareSignalRoute = AdminScreenShareSignalRouteImport.update({
-  id: '/screen-share/signal',
-  path: '/screen-share/signal',
+const AdminS1SignalRoute = AdminS1SignalRouteImport.update({
+  id: '/s1/signal',
+  path: '/s1/signal',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminPubsubApiRoute = AdminPubsubApiRouteImport.update({
+  id: '/pubsub/api',
+  path: '/pubsub/api',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 
@@ -108,11 +138,16 @@ export interface FileRoutesByFullPath {
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/admin/': typeof AdminIndexRoute
-  '/admin/screen-share/signal': typeof AdminScreenShareSignalRoute
+  '/admin/pubsub/api': typeof AdminPubsubApiRoute
+  '/admin/s1/signal': typeof AdminS1SignalRoute
   '/admin/sse/chat-api': typeof AdminSseChatApiRoute
+  '/admin/v0/signal': typeof AdminV0SignalRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin/pubsub/': typeof AdminPubsubIndexRoute
+  '/admin/s1/': typeof AdminS1IndexRoute
   '/admin/screen-share/': typeof AdminScreenShareIndexRoute
   '/admin/sse/': typeof AdminSseIndexRoute
+  '/admin/v0/': typeof AdminV0IndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
@@ -122,11 +157,16 @@ export interface FileRoutesByTo {
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/admin': typeof AdminIndexRoute
-  '/admin/screen-share/signal': typeof AdminScreenShareSignalRoute
+  '/admin/pubsub/api': typeof AdminPubsubApiRoute
+  '/admin/s1/signal': typeof AdminS1SignalRoute
   '/admin/sse/chat-api': typeof AdminSseChatApiRoute
+  '/admin/v0/signal': typeof AdminV0SignalRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin/pubsub': typeof AdminPubsubIndexRoute
+  '/admin/s1': typeof AdminS1IndexRoute
   '/admin/screen-share': typeof AdminScreenShareIndexRoute
   '/admin/sse': typeof AdminSseIndexRoute
+  '/admin/v0': typeof AdminV0IndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,11 +180,16 @@ export interface FileRoutesById {
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/_main/': typeof MainIndexRoute
   '/admin/': typeof AdminIndexRoute
-  '/admin/screen-share/signal': typeof AdminScreenShareSignalRoute
+  '/admin/pubsub/api': typeof AdminPubsubApiRoute
+  '/admin/s1/signal': typeof AdminS1SignalRoute
   '/admin/sse/chat-api': typeof AdminSseChatApiRoute
+  '/admin/v0/signal': typeof AdminV0SignalRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin/pubsub/': typeof AdminPubsubIndexRoute
+  '/admin/s1/': typeof AdminS1IndexRoute
   '/admin/screen-share/': typeof AdminScreenShareIndexRoute
   '/admin/sse/': typeof AdminSseIndexRoute
+  '/admin/v0/': typeof AdminV0IndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -157,11 +202,16 @@ export interface FileRouteTypes {
     | '/demo/store'
     | '/demo/tanstack-query'
     | '/admin/'
-    | '/admin/screen-share/signal'
+    | '/admin/pubsub/api'
+    | '/admin/s1/signal'
     | '/admin/sse/chat-api'
+    | '/admin/v0/signal'
     | '/api/auth/$'
+    | '/admin/pubsub/'
+    | '/admin/s1/'
     | '/admin/screen-share/'
     | '/admin/sse/'
+    | '/admin/v0/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -171,11 +221,16 @@ export interface FileRouteTypes {
     | '/demo/store'
     | '/demo/tanstack-query'
     | '/admin'
-    | '/admin/screen-share/signal'
+    | '/admin/pubsub/api'
+    | '/admin/s1/signal'
     | '/admin/sse/chat-api'
+    | '/admin/v0/signal'
     | '/api/auth/$'
+    | '/admin/pubsub'
+    | '/admin/s1'
     | '/admin/screen-share'
     | '/admin/sse'
+    | '/admin/v0'
   id:
     | '__root__'
     | '/_auth'
@@ -188,11 +243,16 @@ export interface FileRouteTypes {
     | '/demo/tanstack-query'
     | '/_main/'
     | '/admin/'
-    | '/admin/screen-share/signal'
+    | '/admin/pubsub/api'
+    | '/admin/s1/signal'
     | '/admin/sse/chat-api'
+    | '/admin/v0/signal'
     | '/api/auth/$'
+    | '/admin/pubsub/'
+    | '/admin/s1/'
     | '/admin/screen-share/'
     | '/admin/sse/'
+    | '/admin/v0/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -278,6 +338,13 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof AuthAuthRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/admin/v0/': {
+      id: '/admin/v0/'
+      path: '/v0'
+      fullPath: '/admin/v0/'
+      preLoaderRoute: typeof AdminV0IndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/sse/': {
       id: '/admin/sse/'
       path: '/sse'
@@ -292,12 +359,33 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof AdminScreenShareIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/s1/': {
+      id: '/admin/s1/'
+      path: '/s1'
+      fullPath: '/admin/s1/'
+      preLoaderRoute: typeof AdminS1IndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/pubsub/': {
+      id: '/admin/pubsub/'
+      path: '/pubsub'
+      fullPath: '/admin/pubsub/'
+      preLoaderRoute: typeof AdminPubsubIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/v0/signal': {
+      id: '/admin/v0/signal'
+      path: '/v0/signal'
+      fullPath: '/admin/v0/signal'
+      preLoaderRoute: typeof AdminV0SignalRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/sse/chat-api': {
       id: '/admin/sse/chat-api'
@@ -306,11 +394,18 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof AdminSseChatApiRouteImport
       parentRoute: typeof AdminRouteRoute
     }
-    '/admin/screen-share/signal': {
-      id: '/admin/screen-share/signal'
-      path: '/screen-share/signal'
-      fullPath: '/admin/screen-share/signal'
-      preLoaderRoute: typeof AdminScreenShareSignalRouteImport
+    '/admin/s1/signal': {
+      id: '/admin/s1/signal'
+      path: '/s1/signal'
+      fullPath: '/admin/s1/signal'
+      preLoaderRoute: typeof AdminS1SignalRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/pubsub/api': {
+      id: '/admin/pubsub/api'
+      path: '/pubsub/api'
+      fullPath: '/admin/pubsub/api'
+      preLoaderRoute: typeof AdminPubsubApiRouteImport
       parentRoute: typeof AdminRouteRoute
     }
   }
@@ -342,18 +437,28 @@ const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
 
 interface AdminRouteRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
-  AdminScreenShareSignalRoute: typeof AdminScreenShareSignalRoute
+  AdminPubsubApiRoute: typeof AdminPubsubApiRoute
+  AdminS1SignalRoute: typeof AdminS1SignalRoute
   AdminSseChatApiRoute: typeof AdminSseChatApiRoute
+  AdminV0SignalRoute: typeof AdminV0SignalRoute
+  AdminPubsubIndexRoute: typeof AdminPubsubIndexRoute
+  AdminS1IndexRoute: typeof AdminS1IndexRoute
   AdminScreenShareIndexRoute: typeof AdminScreenShareIndexRoute
   AdminSseIndexRoute: typeof AdminSseIndexRoute
+  AdminV0IndexRoute: typeof AdminV0IndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
-  AdminScreenShareSignalRoute: AdminScreenShareSignalRoute,
+  AdminPubsubApiRoute: AdminPubsubApiRoute,
+  AdminS1SignalRoute: AdminS1SignalRoute,
   AdminSseChatApiRoute: AdminSseChatApiRoute,
+  AdminV0SignalRoute: AdminV0SignalRoute,
+  AdminPubsubIndexRoute: AdminPubsubIndexRoute,
+  AdminS1IndexRoute: AdminS1IndexRoute,
   AdminScreenShareIndexRoute: AdminScreenShareIndexRoute,
   AdminSseIndexRoute: AdminSseIndexRoute,
+  AdminV0IndexRoute: AdminV0IndexRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(

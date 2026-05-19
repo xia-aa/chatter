@@ -15,6 +15,9 @@ function RouteComponent() {
 				<Link to="/admin/screen-share">
 					<Button>去分享屏幕</Button>
 				</Link>
+				<Link to="/admin/pubsub">
+					<Button>去发布订阅</Button>
+				</Link>
 			</div>
 		</main>
 	);

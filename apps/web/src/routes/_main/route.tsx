@@ -1,9 +1,14 @@
 import { SidebarProvider, SidebarTrigger } from '@repo/ui/base/sidebar';
-import { createFileRoute, Outlet } from '@tanstack/solid-router';
+import { ClientOnly, createFileRoute, Outlet } from '@tanstack/solid-router';
 import { AppSidebar } from '#/routes/_main/-comp/AppSidebar.tsx';
 
 export const Route = createFileRoute('/_main')({
-	component: RouteComponent,
+	component: () => (
+		<ClientOnly>
+			<RouteComponent />
+		</ClientOnly>
+	),
+	ssr: 'data-only',
 });
 
 function RouteComponent() {

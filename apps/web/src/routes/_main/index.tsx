@@ -1,6 +1,6 @@
+import { m } from '@repo/shared/i18n/paraglide/messages';
 import { debugSsr } from '@repo/shared/lib/utils/env';
-import { createFileRoute } from '@tanstack/solid-router';
-
+import { createFileRoute, Link } from '@tanstack/solid-router';
 export const Route = createFileRoute('/_main/')({ component: App });
 
 function App() {
@@ -19,20 +19,18 @@ function App() {
 					structure, and the essentials you need to build from scratch.
 				</p>
 				<div class="flex flex-wrap gap-3">
-					<a
-						href="/about"
+					<Link
+						to="/admin"
 						class="rounded-full border border-[rgba(50,143,151,0.3)] bg-[rgba(79,184,178,0.14)] px-5 py-2.5 text-sm font-semibold text-[var(--lagoon-deep)] no-underline transition hover:-translate-y-0.5 hover:bg-[rgba(79,184,178,0.24)]"
 					>
-						About This Starter
-					</a>
-					<a
-						href="https://tanstack.com/router"
-						target="_blank"
-						rel="noopener noreferrer"
+						Admin
+					</Link>
+					<Link
+						to="/auth"
 						class="rounded-full border border-[rgba(23,58,64,0.2)] bg-white/50 px-5 py-2.5 text-sm font-semibold text-[var(--sea-ink)] no-underline transition hover:-translate-y-0.5 hover:border-[rgba(23,58,64,0.35)]"
 					>
-						Router Guide
-					</a>
+						{m.signin()}
+					</Link>
 				</div>
 			</section>
 

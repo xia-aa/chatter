@@ -30,13 +30,13 @@ interface MyRouterContext {
 }
 export const Route = createRootRouteWithContext<MyRouterContext>()({
 	beforeLoad: async ({ context: { queryClient } }) => {
-		const session = await queryClient.ensureQueryData(sessionQuery);
+		// const session = await queryClient.ensureQueryData(sessionQuery);
 		// Other redirect strategies are possible; see
 		// https://github.com/TanStack/router/tree/main/examples/react/i18n-paraglide#offline-redirect
 		if (typeof document !== 'undefined') {
 			document.documentElement.setAttribute('lang', getLocale());
 		}
-		return { user: session?.user || null };
+		// return { user: session?.user || null };
 	},
 	head: () => ({
 		links: [

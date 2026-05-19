@@ -2,23 +2,65 @@ import { to } from '@repo/shared/lib/utils/fp.ts';
 import { Button } from '@repo/ui/base/button';
 import { createEffect, createSignal, onCleanup, Show } from 'solid-js';
 
-const API_PATH = '/admin/screen-share/signal';
+const API_PATH = '/admin/pubsub/api';
+const TOPIC = 'screen-share';
 const ICE_SERVERS = {
 	iceServers: [
 		{ urls: 'stun:stun.l.google.com:19302' },
 		{ urls: 'stun:stun1.l.google.com:19302' },
+		{
+			urls: 'turn:openrelay.metered.ca:80',
+			username: 'openrelayproject',
+			credential: 'openrelayproject',
+		},
 	],
 };
 
-function flushCandidates(buffer: any[], pc: RTCPeerConnection | undefined) {
+function enforceVP8(sdp: string): string {
+	const videoMatch = sdp.match(/^m=video\s+\d+\s+[\w/]+\s+(.+)$/m);
+	if (!videoMatch) return sdp;
+	const allPTs = videoMatch[1].trim().split(/\s+/);
+	const h264Set = new Set(
+		allPTs.filter((pt) =>
+			sdp.match(new RegExp(`^a=rtpmap:${pt}\\s+H264`, 'm')),
+		),
+	);
+	if (!h264Set.size) return sdp;
+	const filteredPTs = allPTs.filter((pt) => !h264Set.has(pt));
+	if (!filteredPTs.length) return sdp;
+
+	const lines = sdp.split('\n');
+	const result = lines
+		.map((line) => {
+			if (line.startsWith('m=video')) {
+				return line.replace(allPTs.join(' '), filteredPTs.join(' '));
+			}
+			if (
+				line.startsWith('a=rtpmap:') ||
+				line.startsWith('a=fmtp:') ||
+				line.startsWith('a=rtcp-fb:')
+			) {
+				const pt = line.split(/[: ]/)[2];
+				if (h264Set.has(pt)) return null;
+			}
+			return line;
+		})
+		.filter((l): l is string => l !== null)
+		.join('\n');
+	return result;
+}
+
+function flushCandidates(buffer: any[], sender: RTCPeerConnection | undefined) {
 	for (const c of buffer.splice(0)) {
-		pc?.addIceCandidate(
-			new RTCIceCandidate({
-				candidate: c.candidate,
-				sdpMid: c.sdpMid,
-				sdpMLineIndex: c.sdpMLineIndex,
-			}),
-		).catch(() => {});
+		sender
+			?.addIceCandidate(
+				new RTCIceCandidate({
+					candidate: c.candidate,
+					sdpMid: c.sdpMid,
+					sdpMLineIndex: c.sdpMLineIndex,
+				}),
+			)
+			.catch(() => {});
 	}
 }
 
@@ -32,9 +74,10 @@ export const ScreenShare = () => {
 		'Open this page in two tabs — share in one, watch in the other',
 	);
 
+	const [localVideoEl, setLocalVideoEl] = createSignal<HTMLVideoElement>();
+	const [remoteVideoEl, setRemoteVideoEl] = createSignal<HTMLVideoElement>();
+
 	let pc: RTCPeerConnection | undefined;
-	let localVideo: HTMLVideoElement | undefined;
-	let remoteVideo: HTMLVideoElement | undefined;
 	let sseReader: ReadableStreamDefaultReader | undefined;
 	let sseCancelled = false;
 	const candidateBuffer: any[] = [];
@@ -44,44 +87,71 @@ export const ScreenShare = () => {
 		sseCancelled = false;
 
 		const connectSSE = async () => {
-			try {
-				const response = await fetch(API_PATH);
-				const reader = response.body?.getReader();
-				if (!reader || cancelled) return;
-				sseReader = reader;
-				const decoder = new TextDecoder();
-				while (!cancelled && !sseCancelled) {
-					const { done, value } = await reader.read();
-					if (done) break;
-					for (const line of decoder
-						.decode(value, { stream: true })
-						.split('\n')
-						.filter(Boolean)) {
-						if (cancelled || sseCancelled) break;
+			while (!cancelled && !sseCancelled) {
+				try {
+					const response = await fetch(`${API_PATH}?topic=${TOPIC}`);
+					const reader = response.body?.getReader();
+					if (!reader || cancelled) return;
+					sseReader = reader;
+					const decoder = new TextDecoder();
+					console.log('SSE connected');
+					while (!cancelled && !sseCancelled) {
+						const { done, value } = await reader.read();
+						if (done) break;
+						for (const line of decoder
+							.decode(value, { stream: true })
+							.split('\n')
+							.filter(Boolean)) {
+							if (cancelled || sseCancelled) break;
 
-						const [msg] = to(() => JSON.parse(line));
-						// console.log('Received SSE message:', msg);
-						const m = mode();
-						if (m === 'sharing' && msg.type === 'answer' && pc) {
-							await pc
-								.setRemoteDescription(
-									new RTCSessionDescription({
-										type: 'answer',
-										sdp: msg.sdp,
-									}),
-								)
-								.catch(() => {});
-							flushCandidates(candidateBuffer, pc);
-						} else if (m === 'idle' && msg.type === 'offer' && !pc) {
-							setStatus('Incoming screen share detected, connecting...');
-							await startWatching(msg.sdp);
-						} else if (msg?.type === 'ice-candidate') {
-							candidateBuffer.push(msg);
+							const [msg] = to(() => JSON.parse(line));
+							if (!msg || msg.type === 'ping') continue;
+
+							const m = mode();
+							console.log('SSE msg', msg.type, msg.target, 'mode', m);
+							if (msg.type === 'session-end') {
+								console.log('session ended by remote peer');
+								stopSession(true);
+							} else if (m === 'sharing' && msg.type === 'answer' && pc) {
+								await pc
+									.setRemoteDescription(
+										new RTCSessionDescription({
+											type: 'answer',
+											sdp: msg.sdp,
+										}),
+									)
+									.catch(() => {});
+								flushCandidates(candidateBuffer, pc);
+							} else if (msg.type === 'offer' && m !== 'sharing') {
+								if (pc) {
+									stopSession(false);
+								}
+								setStatus('Incoming screen share detected, connecting...');
+								await startWatching(msg.sdp);
+								flushCandidates(candidateBuffer, pc);
+							} else if (msg.type === 'ice-candidate') {
+								if (pc?.remoteDescription) {
+									pc.addIceCandidate(
+										new RTCIceCandidate({
+											candidate: msg.candidate,
+											sdpMid: msg.sdpMid,
+											sdpMLineIndex: msg.sdpMLineIndex,
+										}),
+									).catch(() => {});
+								} else {
+									candidateBuffer.push(msg);
+								}
+							}
 						}
 					}
+					console.log('SSE disconnected, reconnecting...');
+					await new Promise((r) => setTimeout(r, 500));
+				} catch (err) {
+					if (!cancelled) {
+						console.error('SSE error:', err);
+						await new Promise((r) => setTimeout(r, 1000));
+					}
 				}
-			} catch (err) {
-				if (!cancelled) console.error('SSE error:', err);
 			}
 		};
 
@@ -94,10 +164,8 @@ export const ScreenShare = () => {
 		});
 	});
 
-	function cleanup() {
-		sseCancelled = true;
-		sseReader?.cancel();
-		sseReader = undefined;
+	function stopSession(resetStatus = true) {
+		const wasSharing = mode() === 'sharing';
 		localStream()
 			?.getTracks()
 			.forEach((t) => {
@@ -109,7 +177,20 @@ export const ScreenShare = () => {
 		setLocalStream(null);
 		setRemoteStream(null);
 		setMode('idle');
-		setStatus('Open this page in two tabs — share in one, watch in the other');
+		if (resetStatus) {
+			setStatus(
+				'Open this page in two tabs — share in one, watch in the other',
+			);
+		}
+		if (wasSharing) {
+			fetch(API_PATH, {
+				method: 'POST',
+				body: JSON.stringify({
+					type: 'session-end',
+					topic: TOPIC,
+				}),
+			}).catch(() => {});
+		}
 	}
 
 	async function startBroadcasting() {
@@ -119,26 +200,19 @@ export const ScreenShare = () => {
 				video: true,
 			});
 			setLocalStream(stream);
-			stream.getVideoTracks()[0].addEventListener('ended', cleanup);
+			stream.getVideoTracks()[0].addEventListener('ended', () => stopSession(true));
 
 			setStatus('Creating peer connection...');
-			pc = new RTCPeerConnection(ICE_SERVERS);
-			stream.getTracks().forEach((track) => {
-				pc!.addTrack(track, stream);
-			});
-			pc.ontrack = (event) => {
-				setRemoteStream(event.streams[0]);
-			};
+			const conn = new RTCPeerConnection(ICE_SERVERS);
+			pc = conn;
 
-			const offer = await pc.createOffer();
-			await pc.setLocalDescription(offer);
-
-			pc.onicecandidate = (event) => {
+			conn.onicecandidate = (event) => {
 				if (!event.candidate) return;
 				fetch(API_PATH, {
 					method: 'POST',
 					body: JSON.stringify({
 						type: 'ice-candidate',
+						topic: TOPIC,
 						target: 'viewer',
 						candidate: event.candidate.candidate,
 						sdpMid: event.candidate.sdpMid,
@@ -146,49 +220,61 @@ export const ScreenShare = () => {
 					}),
 				});
 			};
+			conn.oniceconnectionstatechange = () =>
+				console.log('sharer ICE:', conn.iceConnectionState);
+			conn.onconnectionstatechange = () =>
+				console.log('sharer conn:', conn.connectionState);
+			conn.onicegatheringstatechange = () =>
+				console.log('sharer gather:', conn.iceGatheringState);
+			conn.ontrack = (event) => {
+				setRemoteStream(event.streams[0]);
+			};
+
+			stream.getTracks().forEach((track) => {
+				conn.addTrack(track, stream);
+			});
+
+			const offer = await conn.createOffer();
+			console.log(
+				'offer SDP VP8:',
+				offer.sdp?.includes('VP8'),
+				'H264:',
+				offer.sdp?.includes('H264'),
+			);
+			await conn.setLocalDescription(offer);
 
 			setMode('sharing');
 			await fetch(API_PATH, {
 				method: 'POST',
 				body: JSON.stringify({
 					type: 'offer',
+					topic: TOPIC,
 					target: 'viewer',
-					sdp: pc.localDescription!.sdp,
+					sdp: enforceVP8(conn.localDescription!.sdp),
 				}),
 			});
 			setStatus(
 				'Broadcasting — waiting for viewer to connect in another tab...',
 			);
 		} catch (err) {
+			console.error('Broadcast error:', err);
+			stopSession(false);
 			setStatus(`Error: ${err}`);
-			cleanup();
 		}
 	}
 
 	async function startWatching(offerSdp: string) {
 		try {
-			pc = new RTCPeerConnection(ICE_SERVERS);
-			pc.ontrack = (event) => {
-				const stream = event.streams[0];
-				console.log('Received remote track:', stream);
-				event.streams[0].getVideoTracks().forEach((t) => {
-					console.log('remote track:', t.kind, t.enabled, t.readyState);
-				});
-				setRemoteStream(stream);
-				setStatus('Receiving stream!');
-				// 直接设置，不依赖 Solid effect 的时序
-				if (remoteVideo) {
-					console.log('Setting remote video srcObject');
-					remoteVideo.srcObject = stream;
-					remoteVideo.play().catch((e) => console.warn('play:', e));
-				}
-			};
-			pc.onicecandidate = (event) => {
+			const conn = new RTCPeerConnection(ICE_SERVERS);
+			pc = conn;
+
+			conn.onicecandidate = (event) => {
 				if (!event.candidate) return;
 				fetch(API_PATH, {
 					method: 'POST',
 					body: JSON.stringify({
 						type: 'ice-candidate',
+						topic: TOPIC,
 						target: 'sharer',
 						candidate: event.candidate.candidate,
 						sdpMid: event.candidate.sdpMid,
@@ -196,47 +282,71 @@ export const ScreenShare = () => {
 					}),
 				});
 			};
+			conn.oniceconnectionstatechange = () =>
+				console.log('viewer ICE:', conn.iceConnectionState);
+			conn.onconnectionstatechange = () =>
+				console.log('viewer conn:', conn.connectionState);
+			conn.onicegatheringstatechange = () =>
+				console.log('viewer gather:', conn.iceGatheringState);
+			conn.ontrack = (event) => {
+				setRemoteStream(event.streams[0]);
+				setStatus('Receiving stream!');
+			};
 
-			await pc.setRemoteDescription(
+			await conn.setRemoteDescription(
 				new RTCSessionDescription({ type: 'offer', sdp: offerSdp }),
 			);
+			console.log('remoteDescription set');
 
-			flushCandidates(candidateBuffer, pc);
+			flushCandidates(candidateBuffer, conn);
 
-			const answer = await pc.createAnswer();
-			await pc.setLocalDescription(answer);
+			const answer = await conn.createAnswer();
+			console.log('answer created');
+			await conn.setLocalDescription(answer);
+			console.log('localDescription set');
 
-			flushCandidates(candidateBuffer, pc);
+			flushCandidates(candidateBuffer, conn);
+
+			console.log(
+				'answer SDP VP8:',
+				answer.sdp?.includes('VP8'),
+				'H264:',
+				answer.sdp?.includes('H264'),
+			);
 
 			setMode('watching');
 			await fetch(API_PATH, {
 				method: 'POST',
 				body: JSON.stringify({
 					type: 'answer',
+					topic: TOPIC,
 					target: 'sharer',
-					sdp: pc.localDescription?.sdp,
+					sdp: conn.localDescription?.sdp,
 				}),
 			});
 			setStatus('Connected! Watching shared screen.');
 		} catch (err) {
+			console.error('Watch error:', err);
+			stopSession(false);
 			setStatus(`Error: ${err}`);
-			cleanup();
 		}
 	}
 
 	createEffect(() => {
+		const el = localVideoEl();
 		const s = localStream();
-		if (localVideo && s) localVideo.srcObject = s;
+		if (el && s) el.srcObject = s;
 	});
 
 	createEffect(() => {
+		const el = remoteVideoEl();
 		const s = remoteStream();
-		if (remoteVideo && s && remoteVideo.srcObject !== s) {
-			remoteVideo.srcObject = s;
+		if (el && s && el.srcObject !== s) {
+			el.srcObject = s;
 		}
 	});
 
-	onCleanup(cleanup);
+	onCleanup(stopSession);
 
 	return (
 		<div class="space-y-6">
@@ -251,7 +361,7 @@ export const ScreenShare = () => {
 					<p>Open this page in another tab to watch</p>
 				</Show>
 				<Show when={mode() !== 'idle'}>
-					<Button onClick={cleanup} variant="outline">
+					<Button onClick={() => stopSession(true)} variant="outline">
 						Stop
 					</Button>
 				</Show>
@@ -262,7 +372,7 @@ export const ScreenShare = () => {
 					<div>
 						<p class="text-sm font-medium mb-2 text-gray-700">Your Screen</p>
 						<video
-							ref={localVideo!}
+							ref={setLocalVideoEl}
 							autoplay
 							muted
 							playsinline
@@ -274,7 +384,7 @@ export const ScreenShare = () => {
 				<div class={!remoteStream() ? 'hidden' : ''}>
 					<p>Remote Screen</p>
 					<video
-						ref={remoteVideo!}
+						ref={setRemoteVideoEl}
 						autoplay
 						playsinline
 						muted

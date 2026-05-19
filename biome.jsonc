@@ -74,7 +74,8 @@
 				"noExplicitAny": "off",
 				"noArrayIndexKey": "info",
 				"noNonNullAssertedOptionalChain": "info",
-				 "noDoubleEquals": "info"
+				 "noDoubleEquals": "info",
+				 "useIterableCallbackReturn": "info"
 			},
 			"a11y": {
 				"useButtonType": "off",

@@ -14,13 +14,16 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from '@repo/ui/base/sidebar.tsx';
+import { Link } from '@tanstack/solid-router';
 import { BetterAuthHeader } from '#/lib/auth/header-user.tsx';
 
 export function AdminSidebar() {
 	return (
 		<Sidebar>
 			<SidebarHeader>
-				<SidebarMenu>Chatter</SidebarMenu>
+				<SidebarMenu>
+					<Link to="/">Chatter</Link>
+				</SidebarMenu>
 			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup />
@@ -28,9 +31,7 @@ export function AdminSidebar() {
 			</SidebarContent>
 			<SidebarFooter>
 				<SidebarMenu>
-					<SidebarMenuItem>
-						<BetterAuthHeader />
-					</SidebarMenuItem>
+					<SidebarMenuItem>{/* <BetterAuthHeader /> */}</SidebarMenuItem>
 				</SidebarMenu>
 			</SidebarFooter>
 		</Sidebar>
