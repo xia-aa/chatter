@@ -385,12 +385,20 @@ export default function ScreenShare() {
 
 	createEffect(() => {
 		const s = localStream();
-		if (localVideo && s) localVideo.srcObject = s;
+		const v = localVideo;
+		if (v && s) {
+			v.srcObject = s;
+			v.play().then(() => (v.controls = true));
+		}
 	});
 
 	createEffect(() => {
 		const s = remoteStream();
-		if (remoteVideo && s) remoteVideo.srcObject = s;
+		const v = remoteVideo;
+		if (v && s) {
+			v.srcObject = s;
+			v.play().then(() => (v.controls = true));
+		}
 	});
 
 	onCleanup(() => {
