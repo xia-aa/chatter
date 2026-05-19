@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "typecheck": "tsgo --noEmit",
     "dev": "partykit dev --live",
     "deploy": "partykit deploy"
   },
@@ -11,6 +12,6 @@
   },
   "devDependencies": {
     "partykit": "^0.0.110",
-    "typescript": "^5.5.4"
+    "typescript": "^6"
   }
 }

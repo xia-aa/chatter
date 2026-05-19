@@ -19,6 +19,7 @@ import { Route as DemoStoreRouteImport } from './routes/demo.store'
 import { Route as DemoSolidRouteImport } from './routes/demo/solid'
 import { Route as DemoFormRouteImport } from './routes/demo/form'
 import { Route as AuthAuthRouteImport } from './routes/_auth/auth'
+import { Route as AdminW0IndexRouteImport } from './routes/admin/w0/index'
 import { Route as AdminV1IndexRouteImport } from './routes/admin/v1/index'
 import { Route as AdminV0IndexRouteImport } from './routes/admin/v0/index'
 import { Route as AdminSseIndexRouteImport } from './routes/admin/sse/index'
@@ -79,6 +80,11 @@ const AuthAuthRoute = AuthAuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => AuthRouteRoute,
+} as any)
+const AdminW0IndexRoute = AdminW0IndexRouteImport.update({
+  id: '/w0/',
+  path: '/w0/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminV1IndexRoute = AdminV1IndexRouteImport.update({
   id: '/v1/',
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/admin/sse/': typeof AdminSseIndexRoute
   '/admin/v0/': typeof AdminV0IndexRoute
   '/admin/v1/': typeof AdminV1IndexRoute
+  '/admin/w0/': typeof AdminW0IndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
@@ -183,6 +190,7 @@ export interface FileRoutesByTo {
   '/admin/sse': typeof AdminSseIndexRoute
   '/admin/v0': typeof AdminV0IndexRoute
   '/admin/v1': typeof AdminV1IndexRoute
+  '/admin/w0': typeof AdminW0IndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -208,6 +216,7 @@ export interface FileRoutesById {
   '/admin/sse/': typeof AdminSseIndexRoute
   '/admin/v0/': typeof AdminV0IndexRoute
   '/admin/v1/': typeof AdminV1IndexRoute
+  '/admin/w0/': typeof AdminW0IndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -232,6 +241,7 @@ export interface FileRouteTypes {
     | '/admin/sse/'
     | '/admin/v0/'
     | '/admin/v1/'
+    | '/admin/w0/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/admin/sse'
     | '/admin/v0'
     | '/admin/v1'
+    | '/admin/w0'
   id:
     | '__root__'
     | '/_auth'
@@ -277,6 +288,7 @@ export interface FileRouteTypes {
     | '/admin/sse/'
     | '/admin/v0/'
     | '/admin/v1/'
+    | '/admin/w0/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -361,6 +373,13 @@ declare module '@tanstack/solid-router' {
       fullPath: '/auth'
       preLoaderRoute: typeof AuthAuthRouteImport
       parentRoute: typeof AuthRouteRoute
+    }
+    '/admin/w0/': {
+      id: '/admin/w0/'
+      path: '/w0'
+      fullPath: '/admin/w0/'
+      preLoaderRoute: typeof AdminW0IndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/v1/': {
       id: '/admin/v1/'
@@ -486,6 +505,7 @@ interface AdminRouteRouteChildren {
   AdminSseIndexRoute: typeof AdminSseIndexRoute
   AdminV0IndexRoute: typeof AdminV0IndexRoute
   AdminV1IndexRoute: typeof AdminV1IndexRoute
+  AdminW0IndexRoute: typeof AdminW0IndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
@@ -501,6 +521,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminSseIndexRoute: AdminSseIndexRoute,
   AdminV0IndexRoute: AdminV0IndexRoute,
   AdminV1IndexRoute: AdminV1IndexRoute,
+  AdminW0IndexRoute: AdminW0IndexRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
