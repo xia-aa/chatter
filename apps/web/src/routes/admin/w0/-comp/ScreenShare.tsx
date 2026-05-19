@@ -383,22 +383,18 @@ export default function ScreenShare() {
 		});
 	});
 
+	function fullscreen(el: HTMLVideoElement | undefined) {
+		el?.requestFullscreen();
+	}
+
 	createEffect(() => {
 		const s = localStream();
-		const v = localVideo;
-		if (v && s) {
-			v.srcObject = s;
-			v.play().then(() => (v.controls = true));
-		}
+		if (localVideo && s) localVideo.srcObject = s;
 	});
 
 	createEffect(() => {
 		const s = remoteStream();
-		const v = remoteVideo;
-		if (v && s) {
-			v.srcObject = s;
-			v.play().then(() => (v.controls = true));
-		}
+		if (remoteVideo && s) remoteVideo.srcObject = s;
 	});
 
 	onCleanup(() => {
@@ -461,7 +457,16 @@ export default function ScreenShare() {
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 				<Show when={localStream()}>
 					<div>
-						<p class="text-sm font-medium mb-2">我的屏幕</p>
+						<p class="text-sm font-medium mb-2">
+							我的屏幕
+							<button
+								type="button"
+								onClick={() => fullscreen(localVideo)}
+								class="ml-2 text-xs text-blue-500 hover:text-blue-700 underline"
+							>
+								全屏
+							</button>
+						</p>
 						<video
 							ref={localVideo}
 							autoplay
@@ -473,7 +478,16 @@ export default function ScreenShare() {
 				</Show>
 				<Show when={remoteStream()}>
 					<div>
-						<p class="text-sm font-medium mb-2">对方的屏幕</p>
+						<p class="text-sm font-medium mb-2">
+							对方的屏幕
+							<button
+								type="button"
+								onClick={() => fullscreen(remoteVideo)}
+								class="ml-2 text-xs text-blue-500 hover:text-blue-700 underline"
+							>
+								全屏
+							</button>
+						</p>
 						<video
 							ref={remoteVideo}
 							autoplay
