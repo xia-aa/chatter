@@ -1,13 +1,39 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>html</title>
+    <title>Screen Share w0</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div class="header">
+        <h1>Screen Share <span class="badge">w0</span></h1>
+      </div>
+
+      <div id="device-list" class="device-list"></div>
+
+      <div class="controls">
+        <div id="idle-controls">
+          <button id="btn-share" class="btn btn-primary">分享屏幕 (Share)</button>
+          <button id="btn-watch" class="btn btn-outline hidden">观看 (Watch)</button>
+        </div>
+        <div class="hidden" id="active-controls">
+          <button id="btn-stop" class="btn btn-danger">停止 (Stop)</button>
+        </div>
+      </div>
+
+      <div class="videos">
+        <div id="local-container" class="video-container hidden">
+          <p class="video-label">我的屏幕</p>
+          <video id="local-video" autoplay muted playsinline class="video-player"></video>
+        </div>
+        <div id="remote-container" class="video-container hidden">
+          <p class="video-label">对方的屏幕</p>
+          <video id="remote-video" autoplay playsinline muted class="video-player"></video>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
