@@ -1,5 +1,5 @@
 import { ClientOnly, createFileRoute } from '@tanstack/solid-router';
-import { ScreenShare } from './-comp/ScreenShare.tsx';
+import ScreenShare from './-comp/ScreenShare.tsx';
 
 export const Route = createFileRoute('/admin/screen-share/')({
 	component: RouteComponent,

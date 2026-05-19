@@ -1,397 +1,481 @@
-import { to } from '@repo/shared/lib/utils/fp.ts';
 import { Button } from '@repo/ui/base/button';
-import { createEffect, createSignal, onCleanup, Show } from 'solid-js';
+import PartySocket from 'partysocket';
+import { createEffect, createSignal, For, onCleanup, Show } from 'solid-js';
 
-const API_PATH = '/admin/pubsub/api';
-const TOPIC = 'screen-share';
+const ROOM = 'w0';
 const ICE_SERVERS = {
 	iceServers: [
 		{ urls: 'stun:stun.l.google.com:19302' },
 		{ urls: 'stun:stun1.l.google.com:19302' },
-		{
-			urls: 'turn:openrelay.metered.ca:80',
-			username: 'openrelayproject',
-			credential: 'openrelayproject',
-		},
 	],
 };
 
-function enforceVP8(sdp: string): string {
-	const videoMatch = sdp.match(/^m=video\s+\d+\s+[\w/]+\s+(.+)$/m);
-	if (!videoMatch) return sdp;
-	const allPTs = videoMatch[1].trim().split(/\s+/);
-	const h264Set = new Set(
-		allPTs.filter((pt) =>
-			sdp.match(new RegExp(`^a=rtpmap:${pt}\\s+H264`, 'm')),
-		),
-	);
-	if (!h264Set.size) return sdp;
-	const filteredPTs = allPTs.filter((pt) => !h264Set.has(pt));
-	if (!filteredPTs.length) return sdp;
+type Mode = 'idle' | 'sharing' | 'watching';
 
-	const lines = sdp.split('\n');
-	const result = lines
-		.map((line) => {
-			if (line.startsWith('m=video')) {
-				return line.replace(allPTs.join(' '), filteredPTs.join(' '));
-			}
-			if (
-				line.startsWith('a=rtpmap:') ||
-				line.startsWith('a=fmtp:') ||
-				line.startsWith('a=rtcp-fb:')
-			) {
-				const pt = line.split(/[: ]/)[2];
-				if (h264Set.has(pt)) return null;
-			}
-			return line;
-		})
-		.filter((l): l is string => l !== null)
-		.join('\n');
-	return result;
+interface DeviceEntry {
+	id: number;
+	status: string;
+	isMe: boolean;
 }
 
-function flushCandidates(buffer: any[], sender: RTCPeerConnection | undefined) {
-	for (const c of buffer.splice(0)) {
-		sender
-			?.addIceCandidate(
-				new RTCIceCandidate({
-					candidate: c.candidate,
-					sdpMid: c.sdpMid,
-					sdpMLineIndex: c.sdpMLineIndex,
-				}),
-			)
-			.catch(() => {});
-	}
-}
-
-export const ScreenShare = () => {
-	const [mode, setMode] = createSignal<'idle' | 'sharing' | 'watching'>('idle');
+export default function ScreenShare() {
+	const [mode, setMode] = createSignal<Mode>('idle');
 	const [localStream, setLocalStream] = createSignal<MediaStream | null>(null);
 	const [remoteStream, setRemoteStream] = createSignal<MediaStream | null>(
 		null,
 	);
-	const [status, setStatus] = createSignal(
-		'Open this page in two tabs — share in one, watch in the other',
-	);
-
-	const [localVideoEl, setLocalVideoEl] = createSignal<HTMLVideoElement>();
-	const [remoteVideoEl, setRemoteVideoEl] = createSignal<HTMLVideoElement>();
+	const [devices, setDevices] = createSignal<DeviceEntry[]>([]);
+	const [myId, setMyId] = createSignal<number | undefined>();
+	const [showWatch, setShowWatch] = createSignal(false);
+	const [statusText, setStatusText] = createSignal('空闲中');
 
 	let pc: RTCPeerConnection | undefined;
-	let sseReader: ReadableStreamDefaultReader | undefined;
-	let sseCancelled = false;
-	const candidateBuffer: any[] = [];
+	let localVideo: HTMLVideoElement | undefined;
+	let remoteVideo: HTMLVideoElement | undefined;
+	let conn: PartySocket | undefined;
+	let isWaitingOffer = false;
+	let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
-	createEffect(() => {
-		let cancelled = false;
-		sseCancelled = false;
+	if (typeof window === 'undefined') return null;
 
-		const connectSSE = async () => {
-			while (!cancelled && !sseCancelled) {
-				try {
-					const response = await fetch(`${API_PATH}?topic=${TOPIC}`);
-					const reader = response.body?.getReader();
-					if (!reader || cancelled) return;
-					sseReader = reader;
-					const decoder = new TextDecoder();
-					console.log('SSE connected');
-					while (!cancelled && !sseCancelled) {
-						const { done, value } = await reader.read();
-						if (done) break;
-						for (const line of decoder
-							.decode(value, { stream: true })
-							.split('\n')
-							.filter(Boolean)) {
-							if (cancelled || sseCancelled) break;
-
-							const [msg] = to(() => JSON.parse(line));
-							if (!msg || msg.type === 'ping') continue;
-
-							const m = mode();
-							console.log('SSE msg', msg.type, msg.target, 'mode', m);
-							if (msg.type === 'session-end') {
-								console.log('session ended by remote peer');
-								stopSession(true);
-							} else if (m === 'sharing' && msg.type === 'answer' && pc) {
-								await pc
-									.setRemoteDescription(
-										new RTCSessionDescription({
-											type: 'answer',
-											sdp: msg.sdp,
-										}),
-									)
-									.catch(() => {});
-								flushCandidates(candidateBuffer, pc);
-							} else if (msg.type === 'offer' && m !== 'sharing') {
-								if (pc) {
-									stopSession(false);
-								}
-								setStatus('Incoming screen share detected, connecting...');
-								await startWatching(msg.sdp);
-								flushCandidates(candidateBuffer, pc);
-							} else if (msg.type === 'ice-candidate') {
-								if (pc?.remoteDescription) {
-									pc.addIceCandidate(
-										new RTCIceCandidate({
-											candidate: msg.candidate,
-											sdpMid: msg.sdpMid,
-											sdpMLineIndex: msg.sdpMLineIndex,
-										}),
-									).catch(() => {});
-								} else {
-									candidateBuffer.push(msg);
-								}
-							}
-						}
-					}
-					console.log('SSE disconnected, reconnecting...');
-					await new Promise((r) => setTimeout(r, 500));
-				} catch (err) {
-					if (!cancelled) {
-						console.error('SSE error:', err);
-						await new Promise((r) => setTimeout(r, 1000));
-					}
-				}
+	function upsertDevice(id: number, status: string, isMe = false) {
+		setDevices((prev) => {
+			const existing = prev.find((d) => d.id === id);
+			if (existing) {
+				return prev.map((d) => (d.id === id ? { ...d, status } : d));
 			}
-		};
-
-		connectSSE();
-
-		onCleanup(() => {
-			cancelled = true;
-			sseCancelled = true;
-			sseReader?.cancel();
+			return [...prev, { id, status, isMe }];
 		});
-	});
+	}
 
-	function stopSession(resetStatus = true) {
-		const wasSharing = mode() === 'sharing';
+	function removeDevice(id: number) {
+		setDevices((prev) => prev.filter((d) => d.id !== id));
+	}
+
+	const sortedDevices = () =>
+		[...devices()].sort((a, b) => {
+			if (a.isMe) return -1;
+			if (b.isMe) return 1;
+			return 0;
+		});
+
+	function setStatus(text: string) {
+		setStatusText(text);
+		const id = myId();
+		if (id !== undefined) {
+			upsertDevice(id, text, true);
+			conn?.send(JSON.stringify({ type: 'status-update', status: text }));
+		}
+	}
+
+	function cleanup() {
+		if (retryTimer !== undefined) {
+			clearTimeout(retryTimer);
+			retryTimer = undefined;
+		}
+		isWaitingOffer = false;
 		localStream()
 			?.getTracks()
-			.forEach((t) => {
-				t.stop();
-			});
+			.forEach((t) => t.stop());
 		pc?.close();
 		pc = undefined;
-		candidateBuffer.length = 0;
 		setLocalStream(null);
 		setRemoteStream(null);
+		setDevices((prev) => prev.filter((d) => d.isMe));
+		setShowWatch(false);
 		setMode('idle');
-		if (resetStatus) {
-			setStatus(
-				'Open this page in two tabs — share in one, watch in the other',
-			);
-		}
-		if (wasSharing) {
-			fetch(API_PATH, {
-				method: 'POST',
-				body: JSON.stringify({
-					type: 'session-end',
-					topic: TOPIC,
-				}),
-			}).catch(() => {});
-		}
+		setStatus('空闲中');
+	}
+
+	function stopRole() {
+		conn?.send(JSON.stringify({ type: 'stop' }));
+		cleanup();
 	}
 
 	async function startBroadcasting() {
 		try {
-			setStatus('Requesting screen capture...');
+			setStatus('请求屏幕捕获...');
 			const stream = await navigator.mediaDevices.getDisplayMedia({
 				video: true,
 			});
 			setLocalStream(stream);
-			stream.getVideoTracks()[0].addEventListener('ended', () => stopSession(true));
+			stream.getVideoTracks()[0].addEventListener('ended', stopRole);
 
-			setStatus('Creating peer connection...');
-			const conn = new RTCPeerConnection(ICE_SERVERS);
-			pc = conn;
-
-			conn.onicecandidate = (event) => {
-				if (!event.candidate) return;
-				fetch(API_PATH, {
-					method: 'POST',
-					body: JSON.stringify({
-						type: 'ice-candidate',
-						topic: TOPIC,
-						target: 'viewer',
-						candidate: event.candidate.candidate,
-						sdpMid: event.candidate.sdpMid,
-						sdpMLineIndex: event.candidate.sdpMLineIndex,
-					}),
-				});
-			};
-			conn.oniceconnectionstatechange = () =>
-				console.log('sharer ICE:', conn.iceConnectionState);
-			conn.onconnectionstatechange = () =>
-				console.log('sharer conn:', conn.connectionState);
-			conn.onicegatheringstatechange = () =>
-				console.log('sharer gather:', conn.iceGatheringState);
-			conn.ontrack = (event) => {
+			setStatus('创建 PeerConnection 并生成连接协议(Offer)...');
+			pc = new RTCPeerConnection(ICE_SERVERS);
+			stream.getTracks().forEach((track) => pc!.addTrack(track, stream));
+			pc.ontrack = (event) => {
 				setRemoteStream(event.streams[0]);
 			};
 
-			stream.getTracks().forEach((track) => {
-				conn.addTrack(track, stream);
-			});
+			const offer = await pc.createOffer();
+			await pc.setLocalDescription(offer);
 
-			const offer = await conn.createOffer();
-			console.log(
-				'offer SDP VP8:',
-				offer.sdp?.includes('VP8'),
-				'H264:',
-				offer.sdp?.includes('H264'),
-			);
-			await conn.setLocalDescription(offer);
+			if (pc.iceGatheringState !== 'complete') {
+				await new Promise<void>((resolve) => {
+					pc!.addEventListener('icegatheringstatechange', () => {
+						if (pc!.iceGatheringState === 'complete') resolve();
+					});
+				});
+			}
 
 			setMode('sharing');
-			await fetch(API_PATH, {
-				method: 'POST',
-				body: JSON.stringify({
-					type: 'offer',
-					topic: TOPIC,
-					target: 'viewer',
-					sdp: enforceVP8(conn.localDescription!.sdp),
-				}),
-			});
-			setStatus(
-				'Broadcasting — waiting for viewer to connect in another tab...',
+			setStatus('发送 Offer...');
+			conn?.send(
+				JSON.stringify({ type: 'offer', sdp: pc!.localDescription?.sdp }),
 			);
+			setStatus('等待观看者(Viewer)');
 		} catch (err) {
-			console.error('Broadcast error:', err);
-			stopSession(false);
-			setStatus(`Error: ${err}`);
+			setStatus(`错误: ${err}`);
+			cleanup();
 		}
+	}
+
+	async function requestWatch() {
+		if (isWaitingOffer) {
+			setStatus('已在等待 Offer，请稍候...');
+			return;
+		}
+		isWaitingOffer = true;
+		setStatus('请求观看...');
+		conn?.send(JSON.stringify({ type: 'request-offer' }));
+		setStatus('等待 Offer...');
 	}
 
 	async function startWatching(offerSdp: string) {
 		try {
-			const conn = new RTCPeerConnection(ICE_SERVERS);
-			pc = conn;
-
-			conn.onicecandidate = (event) => {
-				if (!event.candidate) return;
-				fetch(API_PATH, {
-					method: 'POST',
-					body: JSON.stringify({
-						type: 'ice-candidate',
-						topic: TOPIC,
-						target: 'sharer',
-						candidate: event.candidate.candidate,
-						sdpMid: event.candidate.sdpMid,
-						sdpMLineIndex: event.candidate.sdpMLineIndex,
-					}),
-				});
-			};
-			conn.oniceconnectionstatechange = () =>
-				console.log('viewer ICE:', conn.iceConnectionState);
-			conn.onconnectionstatechange = () =>
-				console.log('viewer conn:', conn.connectionState);
-			conn.onicegatheringstatechange = () =>
-				console.log('viewer gather:', conn.iceGatheringState);
-			conn.ontrack = (event) => {
+			pc?.close();
+			setStatus('创建 PeerConnection...');
+			pc = new RTCPeerConnection(ICE_SERVERS);
+			pc.ontrack = (event) => {
 				setRemoteStream(event.streams[0]);
-				setStatus('Receiving stream!');
+				setStatus('观看中');
 			};
 
-			await conn.setRemoteDescription(
+			await pc.setRemoteDescription(
 				new RTCSessionDescription({ type: 'offer', sdp: offerSdp }),
 			);
-			console.log('remoteDescription set');
+			const answer = await pc.createAnswer();
+			await pc.setLocalDescription(answer);
 
-			flushCandidates(candidateBuffer, conn);
-
-			const answer = await conn.createAnswer();
-			console.log('answer created');
-			await conn.setLocalDescription(answer);
-			console.log('localDescription set');
-
-			flushCandidates(candidateBuffer, conn);
-
-			console.log(
-				'answer SDP VP8:',
-				answer.sdp?.includes('VP8'),
-				'H264:',
-				answer.sdp?.includes('H264'),
-			);
+			if (pc.iceGatheringState !== 'complete') {
+				await new Promise<void>((resolve) => {
+					pc!.addEventListener('icegatheringstatechange', () => {
+						if (pc!.iceGatheringState === 'complete') resolve();
+					});
+				});
+			}
 
 			setMode('watching');
-			await fetch(API_PATH, {
-				method: 'POST',
-				body: JSON.stringify({
-					type: 'answer',
-					topic: TOPIC,
-					target: 'sharer',
-					sdp: conn.localDescription?.sdp,
-				}),
-			});
-			setStatus('Connected! Watching shared screen.');
+			setStatus('发送 Answer...');
+			conn?.send(
+				JSON.stringify({ type: 'answer', sdp: pc.localDescription?.sdp }),
+			);
+			setStatus('观看中');
 		} catch (err) {
-			console.error('Watch error:', err);
-			stopSession(false);
-			setStatus(`Error: ${err}`);
+			setStatus(`错误: ${err}`);
+			cleanup();
 		}
 	}
 
-	createEffect(() => {
-		const el = localVideoEl();
-		const s = localStream();
-		if (el && s) el.srcObject = s;
-	});
+	async function prepareNewOffer() {
+		setStatus('生成新连接协议(Offer)...');
+		const stream = localStream();
+		if (!stream) return;
 
-	createEffect(() => {
-		const el = remoteVideoEl();
-		const s = remoteStream();
-		if (el && s && el.srcObject !== s) {
-			el.srcObject = s;
+		pc?.close();
+
+		pc = new RTCPeerConnection(ICE_SERVERS);
+		stream.getTracks().forEach((track) => pc!.addTrack(track, stream));
+		pc.ontrack = (event) => {
+			setRemoteStream(event.streams[0]);
+		};
+
+		try {
+			const offer = await pc.createOffer();
+			await pc.setLocalDescription(offer);
+
+			if (pc.iceGatheringState !== 'complete') {
+				await new Promise<void>((resolve) => {
+					pc!.addEventListener('icegatheringstatechange', () => {
+						if (pc!.iceGatheringState === 'complete') resolve();
+					});
+				});
+			}
+
+			conn?.send(
+				JSON.stringify({ type: 'offer', sdp: pc!.localDescription?.sdp }),
+			);
+		} catch {
+			setStatus('准备新连接协议(Offer)失败');
 		}
+	}
+
+	async function reconnectSharer(newSdp: string) {
+		const stream = localStream();
+		if (!stream) return;
+
+		setStatus('观看者已断开，重建连接...');
+		pc?.close();
+
+		pc = new RTCPeerConnection(ICE_SERVERS);
+		stream.getTracks().forEach((track) => pc!.addTrack(track, stream));
+		pc.ontrack = (event) => {
+			setRemoteStream(event.streams[0]);
+		};
+
+		try {
+			await pc.setRemoteDescription(
+				new RTCSessionDescription({ type: 'answer', sdp: newSdp }),
+			);
+			setStatus('分享中');
+		} catch {
+			const offer = await pc.createOffer({ iceRestart: true });
+			await pc.setLocalDescription(offer);
+
+			if (pc.iceGatheringState !== 'complete') {
+				await new Promise<void>((resolve) => {
+					pc!.addEventListener('icegatheringstatechange', () => {
+						if (pc!.iceGatheringState === 'complete') resolve();
+					});
+				});
+			}
+
+			conn?.send(
+				JSON.stringify({ type: 'offer', sdp: pc!.localDescription?.sdp }),
+			);
+			setStatus('等待观看者(Viewer)重新连接');
+		}
+	}
+
+	async function reconnectViewer(offerSdp: string) {
+		setStatus('分享者已断开或重新分享，重建连接...');
+		pc?.close();
+		setRemoteStream(null);
+		await startWatching(offerSdp);
+	}
+
+	createEffect(() => {
+		const host =
+			import.meta.env.VITE_PARTYKIT_HOST ??
+			(typeof window !== 'undefined' ? window.location.host : 'localhost:1999');
+		const socket = new PartySocket({ host, room: ROOM });
+		conn = socket;
+
+		socket.addEventListener('message', async (event) => {
+			try {
+				const msg = JSON.parse(event.data as string);
+
+				switch (msg.type) {
+					case 'registered':
+						setMyId(msg.id);
+						setStatus('空闲中');
+						break;
+
+					case 'peer-list':
+						if (Array.isArray(msg.peers)) {
+							setDevices(
+								msg.peers.map((p: { id: number; status: string }) => ({
+									id: p.id,
+									status: p.status,
+									isMe: p.id === myId(),
+								})),
+							);
+						}
+						break;
+
+					case 'peer-joined':
+						upsertDevice(msg.id, msg.status, msg.id === myId());
+						break;
+
+					case 'peer-left':
+						removeDevice(msg.id);
+						break;
+
+					case 'peer-status':
+						upsertDevice(msg.id, msg.status, msg.id === myId());
+						break;
+
+					case 'sharer-available':
+						if (mode() === 'idle') {
+							setShowWatch(true);
+						}
+						break;
+
+					case 'sharer-left':
+						if (mode() === 'watching') {
+							setStatus('分享者已离开');
+							cleanup();
+						} else if (mode() === 'idle') {
+							setShowWatch(false);
+						}
+						break;
+
+					case 'viewer-left':
+						if (mode() === 'sharing') {
+							await prepareNewOffer();
+							setStatus('等待观看者(Viewer)...');
+						}
+						break;
+
+					case 'offer':
+						isWaitingOffer = false;
+						if (retryTimer !== undefined) {
+							clearTimeout(retryTimer);
+							retryTimer = undefined;
+						}
+						if (typeof msg.sdp === 'string') {
+							if (mode() === 'watching') {
+								await reconnectViewer(msg.sdp);
+							} else if (mode() === 'idle') {
+								setStatus('检测到分享，连接中...');
+								await startWatching(msg.sdp);
+							}
+						}
+						break;
+
+					case 'answer':
+						if (mode() === 'sharing' && typeof msg.sdp === 'string') {
+							if (pc?.remoteDescription) {
+								await reconnectSharer(msg.sdp);
+							} else {
+								try {
+									await pc?.setRemoteDescription(
+										new RTCSessionDescription({
+											type: 'answer',
+											sdp: msg.sdp,
+										}),
+									);
+									setStatus('分享中');
+								} catch {
+									// stale answer, ignore
+								}
+							}
+						}
+						break;
+
+					case 'offer-regenerating':
+						setStatus('分享者正在重新生成连接协议，请稍候...');
+						retryTimer = setTimeout(() => {
+							if (mode() === 'idle') {
+								conn?.send(JSON.stringify({ type: 'request-offer' }));
+							}
+						}, 1000);
+						break;
+
+					case 'error':
+						isWaitingOffer = false;
+						if (retryTimer !== undefined) {
+							clearTimeout(retryTimer);
+							retryTimer = undefined;
+						}
+						setStatus(`错误: ${msg.message}`);
+						break;
+				}
+			} catch {
+				// ignore parse errors
+			}
+		});
+
+		onCleanup(() => {
+			socket.close();
+			conn = undefined;
+		});
 	});
 
-	onCleanup(stopSession);
+	createEffect(() => {
+		const s = localStream();
+		if (localVideo && s) localVideo.srcObject = s;
+	});
+
+	createEffect(() => {
+		const s = remoteStream();
+		if (remoteVideo && s) remoteVideo.srcObject = s;
+	});
+
+	onCleanup(() => {
+		if (retryTimer !== undefined) {
+			clearTimeout(retryTimer);
+			retryTimer = undefined;
+		}
+		localStream()
+			?.getTracks()
+			.forEach((t) => t.stop());
+		pc?.close();
+	});
 
 	return (
 		<div class="space-y-6">
 			<div class="flex items-center gap-3">
-				<h1 class="text-2xl font-bold">Screen Share</h1>
-				<span class="text-sm text-gray-500">{status()}</span>
+				<h1 class="text-2xl font-bold">屏幕共享 w0</h1>
+				<span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+					PartyKit
+				</span>
 			</div>
 
-			<div class="flex gap-2">
+			<Show when={devices().length > 0}>
+				<div class="rounded-lg border bg-card p-3 space-y-1">
+					<For each={sortedDevices()}>
+						{(d) => (
+							<div
+								class={`flex items-center gap-2 text-sm ${d.isMe ? 'font-medium' : ''}`}
+							>
+								<span class="font-mono text-xs">{d.id}</span>
+								<span class="text-muted-foreground">{d.status}</span>
+								<Show when={d.isMe}>
+									<span class="inline-flex items-center rounded bg-blue-500 px-1.5 py-0.5 text-xs font-medium text-white">
+										我
+									</span>
+								</Show>
+							</div>
+						)}
+					</For>
+				</div>
+			</Show>
+
+			<div class="flex items-center gap-2">
 				<Show when={mode() === 'idle'}>
-					<Button onClick={startBroadcasting}>Share My Screen</Button>
-					<p>Open this page in another tab to watch</p>
+					<Button onClick={startBroadcasting}>分享屏幕 (Share)</Button>
+					<Show when={showWatch()}>
+						<Button onClick={requestWatch} variant="outline">
+							观看 (Watch)
+						</Button>
+					</Show>
 				</Show>
 				<Show when={mode() !== 'idle'}>
-					<Button onClick={() => stopSession(true)} variant="outline">
-						Stop
+					<Button onClick={stopRole} variant="destructive">
+						停止 (Stop)
 					</Button>
 				</Show>
+				<span class="text-sm text-muted-foreground">{statusText()}</span>
 			</div>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 				<Show when={localStream()}>
 					<div>
-						<p class="text-sm font-medium mb-2 text-gray-700">Your Screen</p>
+						<p class="text-sm font-medium mb-2">我的屏幕</p>
 						<video
-							ref={setLocalVideoEl}
+							ref={localVideo}
 							autoplay
 							muted
 							playsinline
-							class="w-full rounded-lg border bg-black"
+							class="w-full rounded-lg border bg-black aspect-video object-contain"
 						/>
 					</div>
 				</Show>
-
-				<div class={!remoteStream() ? 'hidden' : ''}>
-					<p>Remote Screen</p>
-					<video
-						ref={setRemoteVideoEl}
-						autoplay
-						playsinline
-						muted
-						class="w-full rounded-lg border bg-black"
-					/>
-				</div>
+				<Show when={remoteStream()}>
+					<div>
+						<p class="text-sm font-medium mb-2">对方的屏幕</p>
+						<video
+							ref={remoteVideo}
+							autoplay
+							playsinline
+							muted
+							class="w-full rounded-lg border bg-black aspect-video object-contain"
+						/>
+					</div>
+				</Show>
 			</div>
 		</div>
 	);
-};
+}

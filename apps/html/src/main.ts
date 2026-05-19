@@ -296,7 +296,7 @@ btnWatch.addEventListener('click', requestWatch);
 btnStop.addEventListener('click', stopRole);
 
 const conn = new PartySocket({
-	host: window.location.host,
+	host: import.meta.env.VITE_PARTYKIT_HOST || window.location.host,
 	room: ROOM,
 });
 

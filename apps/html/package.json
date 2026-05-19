@@ -6,7 +6,7 @@
   "scripts": {
     "typecheck": "tsgo --noEmit",
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsgo && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
